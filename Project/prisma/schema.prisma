@@ -1,0 +1,146 @@
+generator client {
+  provider = "prisma-client-js"
+  
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model AgeRange {
+  id    Int     @id @default(autoincrement())
+  range String  @unique
+  Story Story[]
+}
+
+model Category {
+  id             Int              @id @default(autoincrement())
+  name           String           @unique
+  name_ar        String?
+  Story_Category Story_Category[]
+}
+
+model DailyStories {
+  id             Int      @id @default(autoincrement())
+  triggered_date DateTime
+  story_ids      Int[]
+  language_id    Int      @default(1)
+  Language       Language @relation(fields: [language_id], references: [id])
+}
+
+model DurationRange {
+  id    Int     @id @default(autoincrement())
+  range String  @unique
+  Story Story[]
+}
+
+model Favorite {
+  id       Int   @id @default(autoincrement())
+  user_id  Int
+  story_id Int
+  Story    Story @relation(fields: [story_id], references: [id])
+  User     User  @relation(fields: [user_id], references: [id])
+
+  @@unique([user_id, story_id])
+}
+
+model InProgress {
+  user_id          Int
+  book_id          Int
+  current_position Int
+  is_done          Boolean @default(false)
+  Story            Story   @relation(fields: [book_id], references: [id])
+  User             User    @relation(fields: [user_id], references: [id])
+
+  @@id([user_id, book_id])
+}
+
+model Language {
+  id           Int            @id @default(autoincrement())
+  name         String         @unique
+  DailyStories DailyStories[]
+  Story        Story[]
+}
+
+model Library {
+  id            Int             @id @default(autoincrement())
+  name          String
+  description   String?
+  user_id       Int
+  User          User            @relation(fields: [user_id], references: [id])
+  Story_Library Story_Library[]
+}
+
+model Story {
+  id                Int              @id @default(autoincrement())
+  title             String
+  author            String?
+  description       String?
+  total_pages       Int
+  age_range_id      Int
+  audio_duration    Int
+  duration_range_id Int
+  publication_date  DateTime?
+  cover_img_url     String
+  price             Decimal?
+  language_id       Int
+  Favorite          Favorite[]
+  InProgress        InProgress[]
+  AgeRange          AgeRange         @relation(fields: [age_range_id], references: [id])
+  DurationRange     DurationRange    @relation(fields: [duration_range_id], references: [id])
+  Language          Language         @relation(fields: [language_id], references: [id])
+  StoryChapter      StoryChapter[]
+  Story_Category    Story_Category[]
+  Story_Library     Story_Library[]
+}
+
+model StoryChapter {
+  id        Int     @id @default(autoincrement())
+  story_id  Int
+  audio_url String?
+  story_url String?
+  content   String?
+  title     String?
+  Story     Story   @relation(fields: [story_id], references: [id])
+
+  @@unique([id, story_id])
+}
+
+model Story_Category {
+  id          Int      @id @default(autoincrement())
+  category_id Int
+  book_id     Int
+  Story       Story    @relation(fields: [book_id], references: [id])
+  Category    Category @relation(fields: [category_id], references: [id])
+
+  @@unique([category_id, book_id])
+}
+
+model Story_Library {
+  id         Int     @id @default(autoincrement())
+  library_id Int
+  book_id    Int
+  Story      Story   @relation(fields: [book_id], references: [id])
+  Library    Library @relation(fields: [library_id], references: [id])
+
+  @@unique([library_id, book_id])
+}
+
+model User {
+  id                  Int          @id @default(autoincrement())
+  email               String       @unique
+  username            String       @unique
+  first_name          String
+  last_name           String
+  password            String
+  profile_picture_url String?
+  role                String
+  preferences         Json?
+  is_guest            Boolean      @default(false)
+  reset_token         String?
+  reset_token_expiry  DateTime?
+  Favorite            Favorite[]
+  InProgress          InProgress[]
+  Library             Library[]
+}
