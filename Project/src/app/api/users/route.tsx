@@ -1,10 +1,10 @@
 
-import { prisma } from "../../lib/prisma"; // Assurez-vous que le chemin est correct
+import { prisma } from "../../lib/prisma"; 
 import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const users = await prisma.user.findMany(); // Remplace "user" par le vrai nom du modèle
+    const users = await prisma.user.findMany(); 
     return NextResponse.json(users);
   } catch (error) {
     console.error("Erreur API:", error);
