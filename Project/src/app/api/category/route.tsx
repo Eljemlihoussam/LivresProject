@@ -1,44 +1,42 @@
 import { prisma } from "../../lib/prisma";
 import { NextResponse } from "next/server";
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
-    const { searchParams } = new URL(req.url);
+    // 1. Toutes les catégories
+    const allCategories = await prisma.category.findMany();
 
-    const sort = searchParams.get("sort") || "rating"; // default sort
-    const category = searchParams.get("category"); // optional
-
-    // Construction de la clause WHERE si un filtre est fourni
-    const where = category && category !== "Tous" ? { category: { name: category } } : {};
-
-    // Construction de la clause ORDER BY selon le tri demandé
-    let orderBy = {};
-
-    switch (sort) {
-      case "price-low":
-        orderBy = { price: "asc" };
-        break;
-      case "price-high":
-        orderBy = { price: "desc" };
-        break;
-      case "title":
-        orderBy = { title: "asc" };
-        break;
-      case "rating":
-      default:
-        orderBy = { rating: "desc" };
-        break;
-    }
-
-    const categories = await prisma.category.findMany({
-      where,
-      orderBy,
-      include: {
-        Story_Category: true, // si tu veux les infos de la catégorie
+    // 2. Catégories triées par nom ASC
+    const sortedCategories = await prisma.category.findMany({
+      orderBy: {
+        name: "asc",
       },
     });
 
-    return NextResponse.json({ books });
+    // 3. Jointure pour les infos détaillées des histoires/favorites
+    const categoriesInfo = await prisma.$queryRaw`
+      SELECT title, author, description, audio_duration, publication_date, cover_img_url, range 
+      FROM public."Favorite"
+      INNER JOIN public."Story" ON public."Favorite".story_id = public."Story".id 
+      INNER JOIN public."AgeRange" ON public."Story".Age_range_id = public."AgeRange".id
+    `;
+
+    // 4. Compter les favoris par story
+    const ratingEachStory = await prisma.favorite.groupBy({
+      by: ["story_id"],
+      _count: true,
+    });
+
+    // 5. Tous les types de catégories (encore une fois ?)
+    const typeEachStory = await prisma.category.findMany();
+
+    return NextResponse.json({
+      allCategories,
+      sortedCategories,
+      categoriesInfo,
+      ratingEachStory,
+      typeEachStory,
+    });
   } catch (error) {
     console.error("Erreur API:", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

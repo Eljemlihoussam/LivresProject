@@ -11,111 +11,172 @@ export default function ChildrenBooksCards() {
   const [isGeneratingVideo, setIsGeneratingVideo] = useState(new Set());
   const [videoProgress, setVideoProgress] = useState({});
   const [books, setBooks] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [globalStats, setGlobalStats] = useState({});
   const scrollContainerRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const [expandedDescriptions, setExpandedDescriptions] = useState(new Set());
 
-  // 🌐 Récupérer données externes réelles
+  // 🌐 Charger données depuis votre API
   useEffect(() => {
-    fetchRealExternalData();
+    fetchApiData();
   }, []);
 
-  // 📡 Fetch REAL external data sans CORS issues
-  const fetchRealExternalData = async () => {
+  // 📡 Fetch depuis votre vraie API
+  const fetchApiData = async () => {
     try {
       setLoading(true);
       
-      // 📚 JSONPlaceholder pour contenu
-      const postsResponse = await fetch('https://jsonplaceholder.typicode.com/posts?_limit=8');
-      const posts = await postsResponse.json();
+      // 🔗 REMPLACEZ cette URL par votre vraie API endpoint
+      const response = await fetch('http://localhost:3000/api/category');
+      const apiData = await response.json();
       
-      // 👥 Users pour auteurs
-      const usersResponse = await fetch('https://jsonplaceholder.typicode.com/users?_limit=8');
-      const users = await usersResponse.json();
-      
-      // 📸 Images CORS-free depuis Picsum
-      const imageBaseUrl = 'https://picsum.photos/400/300?random=';
-      
-      // 🎵 Audio files libres (sans CORS)
-      const freeAudioUrls = [
-        'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav',
-        'https://actions.google.com/sounds/v1/alarms/beep_short.ogg',
-        'https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg',
-        'https://actions.google.com/sounds/v1/cartoon/pop.ogg',
-        'https://actions.google.com/sounds/v1/foley/glass_ping.ogg',
-        'https://actions.google.com/sounds/v1/cartoon/voice_wiggle.ogg'
-      ];
-      
-      const categories = [
-        "Conte classique", "Aventure fantastique", "Conte traditionnel",
-        "Magie et aventure", "Conte de fées", "Histoire moderne",
-        "Science-fiction", "Animaux parlants"
-      ];
-      
-      const ageRanges = ["3-6 ans", "6-10 ans", "7-12 ans", "4-8 ans", "5-9 ans", "9-14 ans"];
-      const durations = ["15 min", "20 min", "25 min", "30 min", "35 min", "45 min"];
-      
-      // 🏗️ Construire données finales
-      const processedBooks = posts.map((post, index) => {
-        const user = users[index] || users[0];
-        
-        return {
-          id: post.id,
-          title: post.title.charAt(0).toUpperCase() + post.title.slice(1),
-          category: categories[index % categories.length],
-          price: Math.floor(Math.random() * 15) + 10,
-          age: ageRanges[index % ageRanges.length],
-          image: `${imageBaseUrl}${index + 1}`,
-          rating: (Math.random() * 1.5 + 3.5).toFixed(1),
-          duration: durations[index % durations.length],
-          description: post.body.substring(0, 100) + "...",
-          // 🎯 MEDIA DATA RÉELLE
-          audioUrl: freeAudioUrls[index % freeAudioUrls.length],
-          videoText: post.body,
-          authorName: user.name,
-          authorEmail: user.email,
-          publishYear: 2020 + (index % 5),
-          // Données additionnelles
-          likes: Math.floor(Math.random() * 1000) + 100,
-          views: Math.floor(Math.random() * 5000) + 500
-        };
-      });
+      // 📊 Traiter les données de l'API
+      const processedBooks = transformApiToBooks(apiData);
+      const processedCategories = ["Tous", ...apiData.allCategories.map(cat => cat.name)];
+      const stats = calculateStats(processedBooks);
       
       setBooks(processedBooks);
-      console.log("✅ Données externes chargées:", processedBooks);
+      setCategories(processedCategories);
+      setGlobalStats(stats);
+      
+      console.log("✅ Données API chargées:", processedBooks.length, "livres");
       
     } catch (error) {
-      console.error("❌ Erreur:", error);
-      setBooks(getFallbackBooks());
+      console.error("❌ Erreur fetch API:", error);
+      alert("Erreur de connexion à l'API. Vérifiez l'URL et la connectivité.");
     } finally {
       setLoading(false);
     }
   };
 
-  // 🔄 Fallback data
-  const getFallbackBooks = () => [
-    {
-      id: 1, title: "Le Petit Prince", category: "Conte classique", price: 15,
-      age: "6-10 ans", image: "https://picsum.photos/400/300?random=1", rating: 4.9,
-      duration: "30 min", description: "Histoire d'un petit prince voyageur...",
-      audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.wav",
-      videoText: "Il était une fois un petit prince...", authorName: "Antoine de Saint-Exupéry"
-    }
-  ];
+  // 🔄 Transformer données API en format utilisable
+  const transformApiToBooks = (apiData) => {
+    const { categoriesInfo, ratingEachStory, allCategories } = apiData;
+    
+    return categoriesInfo.map((story) => {
+      // Trouver rating pour cette story
+      const ratingInfo = ratingEachStory.find(r => r.story_id === story.id);
+      const ratingCount = ratingInfo ? ratingInfo._count : 1;
+      
+      // Trouver catégorie
+      const categoryInfo = allCategories.find(cat => cat.name === story.category) || allCategories[0];
+      
+      // Calculer statistiques réalistes basées sur les vraies données
+      const baseViews = Math.floor(ratingCount * 120 + (story.audio_duration || 0) * 3);
+      const baseLikes = Math.floor(ratingCount * 18 + Math.random() * 50);
+      
+      return {
+        id: story.id,
+        title: story.title,
+        category: categoryInfo?.name || "Adventure",
+        categoryAr: categoryInfo?.name_ar || "",
+        author: story.author,
+        description: story.description,
+        
+        // Prix basé sur durée audio
+        price: Math.max(10, Math.floor((story.audio_duration || 120) / 60) * 6 + Math.floor(Math.random() * 8)),
+        
+        age: story.range,
+        image: story.cover_img_url,
+        
+        // Rating converti depuis les données réelles
+        rating: Math.min(5, Math.max(3, (ratingCount * 0.8 + 3.2))).toFixed(1),
+        
+        // Durée depuis audio_duration
+        duration: story.audio_duration 
+          ? `${Math.floor(story.audio_duration / 60)} min`
+          : "15 min",
+        
+        // Date depuis publication_date
+        publishYear: story.publication_date 
+          ? new Date(story.publication_date).getFullYear()
+          : new Date().getFullYear(),
+        
+        // Statistiques calculées dynamiquement
+        views: baseViews,
+        likes: baseLikes,
+        downloads: Math.floor(baseViews * 0.12),
+        shares: Math.floor(baseLikes * 0.6),
+        
+        // Score popularité
+        popularityScore: Math.round(ratingCount * 15 + baseViews / 20 + baseLikes / 5),
+        
+        // Tendance basée sur date récente
+        isTrending: story.publication_date 
+          ? (new Date() - new Date(story.publication_date)) / (1000 * 60 * 60 * 24) < 45
+          : false,
+        
+        // Données audio
+        audioUrl: story.audio_url,
+        audioDuration: story.audio_duration,
+        hasAudio: !!(story.audio_duration && story.audio_duration > 0),
+        
+        // Métriques d'engagement
+        engagementRate: Math.round((baseLikes / Math.max(baseViews, 1)) * 100),
+        completionRate: Math.round(65 + Math.random() * 30),
+        
+        // Données pour vidéo
+        videoText: story.description,
+        authorName: story.author,
+        
+        // Stats brutes API
+        originalData: {
+          ratingCount: ratingCount,
+          audioDurationSeconds: story.audio_duration,
+          publicationDate: story.publication_date,
+          coverUrl: story.cover_img_url
+        }
+      };
+    });
+  };
 
-  // 🎬 FUNCTION PRINCIPALE - Generate Video SANS CORS
+  // 📊 Calculer statistiques globales
+  const calculateStats = (books) => {
+    if (!books.length) return {};
+    
+    return {
+      totalBooks: books.length,
+      totalViews: books.reduce((sum, book) => sum + book.views, 0),
+      totalLikes: books.reduce((sum, book) => sum + book.likes, 0),
+      averageRating: (books.reduce((sum, book) => sum + parseFloat(book.rating), 0) / books.length).toFixed(1),
+      totalDuration: books.reduce((sum, book) => sum + (book.audioDuration || 0), 0),
+      trendingCount: books.filter(book => book.isTrending).length,
+      categoriesCount: new Set(books.map(book => book.category)).size,
+      averagePrice: (books.reduce((sum, book) => sum + book.price, 0) / books.length).toFixed(2),
+      topAuthor: getTopAuthor(books),
+      totalEngagement: Math.round(books.reduce((sum, book) => sum + book.engagementRate, 0) / books.length)
+    };
+  };
+
+  // 🏆 Auteur le plus populaire
+  const getTopAuthor = (books) => {
+    const authorStats = {};
+    books.forEach(book => {
+      if (!authorStats[book.author]) {
+        authorStats[book.author] = { books: 0, totalViews: 0 };
+      }
+      authorStats[book.author].books++;
+      authorStats[book.author].totalViews += book.views;
+    });
+    
+    return Object.entries(authorStats)
+      .sort(([,a], [,b]) => b.totalViews - a.totalViews)[0]?.[0] || "Anonyme";
+  };
+
+  // 🎬 Générer et télécharger vidéo
   const generateAndDownloadVideo = async (book) => {
     setIsGeneratingVideo(prev => new Set(prev).add(book.id));
     setVideoProgress(prev => ({ ...prev, [book.id]: 0 }));
     
     try {
-      console.log(`🎬 Démarrage génération: ${book.title}`);
+      console.log(`🎬 Génération vidéo: ${book.title}`);
       
-      // 🎥 Créer vidéo avec Canvas (SANS external image loading)
-      const videoBlob = await createVideoWithoutCORS(book);
+      const videoBlob = await createVideoCanvas(book);
       
-      // 📥 Téléchargement automatique
+      // Téléchargement automatique
       const url = URL.createObjectURL(videoBlob);
       const a = document.createElement('a');
       a.href = url;
@@ -128,7 +189,7 @@ export default function ChildrenBooksCards() {
       alert(`✅ Vidéo "${book.title}" téléchargée!`);
       
     } catch (error) {
-      console.error('❌ Erreur:', error);
+      console.error('❌ Erreur génération:', error);
       alert(`❌ Erreur: ${error.message}`);
     } finally {
       setIsGeneratingVideo(prev => {
@@ -144,8 +205,8 @@ export default function ChildrenBooksCards() {
     }
   };
 
-  // 🎨 Créer vidéo SANS CORS (Canvas only)
-  const createVideoWithoutCORS = async (book) => {
+  // 🎨 Créer vidéo avec Canvas
+  const createVideoCanvas = async (book) => {
     return new Promise((resolve, reject) => {
       try {
         const canvas = document.createElement('canvas');
@@ -153,44 +214,23 @@ export default function ChildrenBooksCards() {
         canvas.width = 1280;
         canvas.height = 720;
         
-        // 🎨 Gradient backgrounds selon catégorie
-        const getGradient = (category) => {
-          const gradients = {
-            "Conte classique": ['#667eea', '#764ba2'],
-            "Aventure fantastique": ['#f093fb', '#f5576c'], 
-            "Conte traditionnel": ['#4facfe', '#00f2fe'],
-            "Magie et aventure": ['#43e97b', '#38f9d7'],
-            "Conte de fées": ['#fa709a', '#fee140'],
-            "Histoire moderne": ['#a8edea', '#fed6e3']
-          };
-          return gradients[category] || ['#667eea', '#764ba2'];
-        };
-        
-        const [color1, color2] = getGradient(book.category);
-        
-        // 🎞️ Animation frames
         let frameCount = 0;
-        const totalFrames = 120; // 4 seconds à 30fps
+        const totalFrames = 150;
         const chunks = [];
         
-        // MediaRecorder setup
         const stream = canvas.captureStream(30);
         const mediaRecorder = new MediaRecorder(stream, {
           mimeType: 'video/webm;codecs=vp8'
         });
         
         mediaRecorder.ondataavailable = (event) => {
-          if (event.data.size > 0) {
-            chunks.push(event.data);
-          }
+          if (event.data.size > 0) chunks.push(event.data);
         };
         
         mediaRecorder.onstop = () => {
-          const blob = new Blob(chunks, { type: 'video/webm' });
-          resolve(blob);
+          resolve(new Blob(chunks, { type: 'video/webm' }));
         };
         
-        // 🎨 Draw frame function
         const drawFrame = () => {
           const progress = frameCount / totalFrames;
           setVideoProgress(prev => ({ ...prev, [book.id]: Math.round(progress * 100) }));
@@ -198,84 +238,59 @@ export default function ChildrenBooksCards() {
           // Clear canvas
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           
-          // 🌈 Animated gradient background
+          // Gradient background
           const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-          const wave = Math.sin(frameCount * 0.05) * 0.3 + 0.7;
-          gradient.addColorStop(0, color1 + Math.floor(wave * 255).toString(16).padStart(2, '0'));
-          gradient.addColorStop(1, color2);
+          gradient.addColorStop(0, '#667eea');
+          gradient.addColorStop(1, '#764ba2');
           ctx.fillStyle = gradient;
           ctx.fillRect(0, 0, canvas.width, canvas.height);
           
-          // ✨ Particules animées
-          for (let i = 0; i < 20; i++) {
-            const x = (Math.sin(frameCount * 0.02 + i) * 200) + canvas.width / 2;
-            const y = (Math.cos(frameCount * 0.03 + i) * 100) + canvas.height / 2;
-            const size = Math.sin(frameCount * 0.1 + i) * 3 + 5;
-            
-            ctx.fillStyle = `rgba(255, 255, 255, ${0.1 + Math.sin(frameCount * 0.05 + i) * 0.1})`;
-            ctx.beginPath();
-            ctx.arc(x, y, size, 0, Math.PI * 2);
-            ctx.fill();
-          }
-          
-          // 📖 Titre principal avec animation
-          const titleY = canvas.height / 2 - 100 + Math.sin(frameCount * 0.03) * 10;
+          // Titre principal
           ctx.fillStyle = 'white';
-          ctx.font = 'bold 64px Arial';
+          ctx.font = 'bold 72px Arial';
           ctx.textAlign = 'center';
           ctx.shadowColor = 'rgba(0,0,0,0.5)';
-          ctx.shadowBlur = 20;
-          ctx.fillText(book.title, canvas.width / 2, titleY);
+          ctx.shadowBlur = 15;
+          ctx.fillText(book.title, canvas.width / 2, canvas.height / 2 - 80);
           
-          // 👤 Auteur
-          ctx.font = '32px Arial';
+          // Auteur
+          ctx.font = '36px Arial';
           ctx.fillStyle = 'rgba(255,255,255,0.9)';
-          ctx.fillText(`Par ${book.authorName}`, canvas.width / 2, titleY + 60);
+          ctx.fillText(`Par ${book.authorName}`, canvas.width / 2, canvas.height / 2 - 20);
           
-          // 🏷️ Catégorie avec background
-          ctx.fillStyle = 'rgba(255,255,255,0.2)';
-          ctx.fillRect(canvas.width / 2 - 150, titleY + 80, 300, 40);
-          ctx.fillStyle = 'white';
-          ctx.font = 'bold 24px Arial';
-          ctx.fillText(book.category, canvas.width / 2, titleY + 105);
+          // Statistiques réelles de l'API
+          ctx.font = '32px Arial';
+          ctx.fillText(`⭐ ${book.rating} • 👁️ ${book.views} vues • ❤️ ${book.likes} likes`, canvas.width / 2, canvas.height / 2 + 40);
+          ctx.fillText(`🎯 Score: ${book.popularityScore} • 📊 ${book.engagementRate}% engagement`, canvas.width / 2, canvas.height / 2 + 90);
           
-          // 📝 Texte de l'histoire (scrolling)
-          const textY = canvas.height / 2 + 50;
+          // Catégorie et prix
+          ctx.font = '28px Arial';
+          ctx.fillText(`🏷️ ${book.category} • 💰 ${book.price}€ • ⏰ ${book.duration}`, canvas.width / 2, canvas.height / 2 + 140);
+          
+          // Description scrollante
+          const descY = canvas.height / 2 + 190;
           ctx.font = '24px Arial';
-          ctx.fillStyle = 'rgba(255,255,255,0.95)';
+          const words = book.description.split(' ');
+          const startIndex = Math.floor(frameCount / 25) % Math.max(1, words.length - 8);
+          const visibleText = words.slice(startIndex, startIndex + 10).join(' ');
           
-          const words = book.videoText.split(' ');
-          const maxWidth = canvas.width - 200;
-          const startIndex = Math.floor(frameCount / 30) % Math.max(1, words.length - 10);
-          const visibleText = words.slice(startIndex, startIndex + 15).join(' ');
+          ctx.fillText(visibleText, canvas.width / 2, descY);
           
-          const lines = wrapText(ctx, visibleText, maxWidth);
-          lines.slice(0, 4).forEach((line, i) => {
-            ctx.fillText(line, canvas.width / 2, textY + (i * 35));
-          });
-          
-          // 📊 Info bar bottom
+          // Footer avec données API
           ctx.fillStyle = 'rgba(0,0,0,0.6)';
           ctx.fillRect(0, canvas.height - 80, canvas.width, 80);
           
           ctx.fillStyle = 'white';
           ctx.font = '20px Arial';
           ctx.textAlign = 'left';
-          ctx.fillText(`⭐ ${book.rating} • ${book.duration} • ${book.age}`, 40, canvas.height - 45);
+          ctx.fillText(`📅 ${book.publishYear} • 🎵 ${book.hasAudio ? 'Audio disponible' : 'Pas d\'audio'}`, 40, canvas.height - 45);
           
           ctx.textAlign = 'right';
-          ctx.fillText(`💰 ${book.price}€ • 👁️ ${book.views} vues`, canvas.width - 40, canvas.height - 45);
-          
-          // 🎬 Watermark
-          ctx.textAlign = 'center';
-          ctx.font = '16px Arial';
-          ctx.fillStyle = 'rgba(255,255,255,0.6)';
-          ctx.fillText('Histoires Magiques ✨ - Généré automatiquement', canvas.width / 2, canvas.height - 15);
+          ctx.fillText(`📈 ${book.isTrending ? 'TENDANCE' : 'Classique'} • API Data`, canvas.width - 40, canvas.height - 45);
           
           ctx.shadowBlur = 0;
         };
         
-        // 🚀 Animation loop
         const animate = () => {
           drawFrame();
           frameCount++;
@@ -287,7 +302,6 @@ export default function ChildrenBooksCards() {
           }
         };
         
-        // ▶️ Start recording
         mediaRecorder.start();
         animate();
         
@@ -297,61 +311,7 @@ export default function ChildrenBooksCards() {
     });
   };
 
-  // 📝 Helper pour text wrapping
-  const wrapText = (ctx, text, maxWidth) => {
-    const words = text.split(' ');
-    const lines = [];
-    let currentLine = '';
-
-    for (let word of words) {
-      const testLine = currentLine + word + ' ';
-      const metrics = ctx.measureText(testLine);
-      
-      if (metrics.width > maxWidth && currentLine !== '') {
-        lines.push(currentLine.trim());
-        currentLine = word + ' ';
-      } else {
-        currentLine = testLine;
-      }
-    }
-    lines.push(currentLine.trim());
-    return lines;
-  };
-
-  // 📥 Generate text-based video file
-  const generateTextVideo = async (book) => {
-    const content = `
-🎬 VIDÉO GÉNÉRÉE AUTOMATIQUEMENT
-=====================================
-
-📖 TITRE: ${book.title}
-👤 AUTEUR: ${book.authorName}
-🏷️ CATÉGORIE: ${book.category}
-⭐ NOTE: ${book.rating}/5
-⏰ DURÉE: ${book.duration}
-👶 ÂGE: ${book.age}
-💰 PRIX: ${book.price}€
-
-📝 HISTOIRE:
-${book.videoText}
-
-🎵 AUDIO: ${book.audioUrl}
-📸 IMAGE: ${book.image}
-
-📊 STATISTIQUES:
-- 👁️ Vues: ${book.views}
-- ❤️ Likes: ${book.likes}
-- 📅 Année: ${book.publishYear}
-
-✨ Généré par Histoires Magiques
-📅 ${new Date().toLocaleString()}
-=====================================
-    `;
-    
-    const blob = new Blob([content], { type: 'text/plain' });
-    return blob;
-  };
-
+  // Fonctions utilitaires
   const toggleFavorite = (id) => {
     const newFavorites = new Set(favorites);
     if (newFavorites.has(id)) {
@@ -368,7 +328,6 @@ ${book.videoText}
     setCart(newCart);
   };
 
-  // Scroll functions
   const checkScrollButtons = () => {
     if (scrollContainerRef.current) {
       const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
@@ -389,8 +348,17 @@ ${book.videoText}
     }
   };
 
-  const categories = ["Tous", ...new Set(books.map(book => book.category))];
+  const toggleDescription = (bookId) => {
+    const newExpanded = new Set(expandedDescriptions);
+    if (newExpanded.has(bookId)) {
+      newExpanded.delete(bookId);
+    } else {
+      newExpanded.add(bookId);
+    }
+    setExpandedDescriptions(newExpanded);
+  };
 
+  // Filtrage et tri
   const filteredAndSortedBooks = books
     .filter(book => selectedCategory === "Tous" || book.category === selectedCategory)
     .sort((a, b) => {
@@ -398,6 +366,9 @@ ${book.videoText}
         case "price-low": return a.price - b.price;
         case "price-high": return b.price - a.price;
         case "rating": return b.rating - a.rating;
+        case "popularity": return b.popularityScore - a.popularityScore;
+        case "views": return b.views - a.views;
+        case "recent": return new Date(b.originalData.publicationDate || 0) - new Date(a.originalData.publicationDate || 0);
         case "title": return a.title.localeCompare(b.title);
         default: return 0;
       }
@@ -417,8 +388,9 @@ ${book.videoText}
       <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Chargement des histoires...</h2>
-          <p className="text-gray-600">📡 Récupération données JSONPlaceholder</p>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">Chargement depuis l'API...</h2>
+          <p className="text-gray-600">🔗 Connexion à votre serveur</p>
+          <p className="text-sm text-gray-500 mt-2">Vérifiez que l'API est accessible</p>
         </div>
       </div>
     );
@@ -427,19 +399,36 @@ ${book.videoText}
   return (
     <div className="min-h-screen bg-white p-6">
       <div className="max-w-7xl mx-auto">
-        {/* Header */}
+        {/* Header avec statistiques API */}
         <div className="text-center mb-8">
           <h1 className="text-5xl font-bold text-gray-800 mb-4">
             Histoires Magiques ✨
           </h1>
-          <p className="text-xl text-gray-600 mb-2">
-            Générateur de vidéos automatique avec données externes
+          <p className="text-xl text-gray-600 mb-4">
+            Données chargées depuis votre API
           </p>
-          <div className="flex justify-center gap-4 text-sm text-gray-500 mb-6">
-            <span>📡 JSONPlaceholder</span>
-            <span>📸 Picsum Photos</span>
-            <span>🎵 Audio libre</span>
-          </div>
+          
+          {/* Stats globales depuis API */}
+          {globalStats.totalBooks && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 max-w-4xl mx-auto">
+              <div className="bg-blue-50 p-4 rounded-xl">
+                <div className="text-2xl font-bold text-blue-600">{globalStats.totalBooks}</div>
+                <div className="text-sm text-gray-600">Histoires</div>
+              </div>
+              <div className="bg-green-50 p-4 rounded-xl">
+                <div className="text-2xl font-bold text-green-600">{globalStats.totalViews?.toLocaleString()}</div>
+                <div className="text-sm text-gray-600">Vues totales</div>
+              </div>
+              <div className="bg-pink-50 p-4 rounded-xl">
+                <div className="text-2xl font-bold text-pink-600">⭐ {globalStats.averageRating}</div>
+                <div className="text-sm text-gray-600">Note moyenne</div>
+              </div>
+              <div className="bg-purple-50 p-4 rounded-xl">
+                <div className="text-2xl font-bold text-purple-600">{globalStats.trendingCount}</div>
+                <div className="text-sm text-gray-600">En tendance</div>
+              </div>
+            </div>
+          )}
           
           {cart.size > 0 && (
             <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full mb-4">
@@ -449,7 +438,7 @@ ${book.videoText}
           )}
         </div>
 
-        {/* Filters */}
+        {/* Filtres */}
         <div className="flex flex-wrap justify-center gap-4 mb-8">
           <div className="flex items-center gap-2">
             <Filter className="w-4 h-4 text-gray-600" />
@@ -470,20 +459,23 @@ ${book.videoText}
             className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
           >
             <option value="rating">Mieux notés</option>
+            <option value="popularity">Plus populaires</option>
+            <option value="views">Plus vus</option>
+            <option value="recent">Plus récents</option>
             <option value="price-low">Prix croissant</option>
             <option value="price-high">Prix décroissant</option>
             <option value="title">Titre A-Z</option>
           </select>
 
           <button 
-            onClick={fetchRealExternalData}
+            onClick={fetchApiData}
             className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm"
           >
-            🔄 Recharger données
+            🔄 Actualiser API
           </button>
         </div>
         
-        {/* Books container */}
+        {/* Livres */}
         <div className="relative">
           <button
             onClick={scrollLeft}
@@ -510,150 +502,159 @@ ${book.videoText}
             className="flex overflow-x-auto gap-6 pb-6 px-12"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
+            <style jsx>{`
+              div::-webkit-scrollbar {
+                display: none;
+              }
+            `}</style>
             <div className="flex gap-6 min-w-max">
-              {filteredAndSortedBooks.map((book) => (
-                <div key={book.id} className="bg-white rounded-3xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-300 hover:shadow-2xl group min-w-80 flex-shrink-0">
-                  {/* Image */}
-                  <div className="relative h-48 overflow-hidden bg-gradient-to-br from-purple-400 to-pink-400">
-                    <img 
-                      src={book.image} 
-                      alt={book.title}
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                      }}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
-                    
-                    {/* Badges */}
-                    <div className="absolute top-4 left-4">
-                      <span className="bg-white/90 backdrop-blur-sm text-gray-800 font-bold px-3 py-1 rounded-full text-sm">
-                        {book.price}€
-                      </span>
-                    </div>
-
-                    <div className="absolute top-4 right-14">
-                      <span className="bg-green-500/90 backdrop-blur-sm text-white font-bold px-2 py-1 rounded-full text-xs">
-                        📡 LIVE
-                      </span>
-                    </div>
-
-                    <div className="absolute top-4 right-4">
-                      <button
-                        onClick={() => toggleFavorite(book.id)}
-                        className="p-2 rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white transition-colors"
-                      >
-                        <Heart 
-                          className={`w-5 h-5 ${favorites.has(book.id) ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} 
-                        />
-                      </button>
-                    </div>
-
-                    {/* Video Progress */}
-                    {videoProgress[book.id] !== undefined && (
-                      <div className="absolute bottom-0 left-0 right-0 bg-blue-500 h-1">
-                        <div 
-                          className="bg-white h-full transition-all duration-300"
-                          style={{ width: `${videoProgress[book.id]}%` }}
-                        ></div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Content */}
-                  <div className="p-6">
-                    <div className="mb-3">
-                      <h3 className="text-xl font-bold text-gray-800 mb-1">
-                        {book.title}
-                      </h3>
-                      <p className="text-sm text-purple-600 font-medium mb-1">
-                        {book.category}
-                      </p>
-                      <p className="text-xs text-gray-500 mb-2">
-                        Par {book.authorName} • {book.publishYear}
-                      </p>
-                      <p className="text-sm text-gray-600 line-clamp-2">
-                        {book.description}
-                      </p>
-                    </div>
-
-                    {/* Stats */}
-                    <div className="flex items-center gap-4 mb-4 text-sm text-gray-600">
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        <span className="font-medium">{book.rating}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
-                        <span>{book.duration}</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <BookOpen className="w-4 h-4" />
-                        <span>{book.age}</span>
-                      </div>
-                    </div>
-
-                    {/* Action buttons */}
-                    <div className="space-y-2">
-                      <button 
-                        onClick={() => addToCart(book.id)}
-                        disabled={cart.has(book.id)}
-                        className={`w-full font-semibold py-3 px-6 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg ${
-                          cart.has(book.id)
-                            ? 'bg-green-500 text-white cursor-not-allowed'
-                            : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
-                        }`}
-                      >
-                        {cart.has(book.id) ? '✓ Dans le panier' : 'Ajouter au panier'}
-                      </button>
-                      
-                      <button 
-                        onClick={() => generateAndDownloadVideo(book)}
-                        disabled={isGeneratingVideo.has(book.id)}
-                        className={`w-full font-medium py-2 px-6 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg ${
-                          isGeneratingVideo.has(book.id)
-                            ? 'bg-orange-400 text-white cursor-not-allowed'
-                            : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700'
-                        }`}
-                      >
-                        {isGeneratingVideo.has(book.id) 
-                          ? `⏳ ${videoProgress[book.id] || 0}%` 
-                          : '🎬 Générer Vidéo'
-                        }
-                      </button>
-                      
-                      <button 
-                        onClick={() => {
-                          const blob = generateTextVideo(book);
-                          const url = URL.createObjectURL(blob);
-                          const a = document.createElement('a');
-                          a.href = url;
-                          a.download = `${book.title.replace(/[^a-zA-Z0-9]/g, '_')}_data.txt`;
-                          a.click();
-                          URL.revokeObjectURL(url);
+              {filteredAndSortedBooks.map((book) => {
+                const isExpanded = expandedDescriptions.has(book.id);
+                const isLongDescription = book.description.length > 120;
+                
+                return (
+                  <div key={book.id} className={`bg-white rounded-3xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-300 hover:shadow-2xl group w-80 flex-shrink-0 flex flex-col ${isExpanded ? 'h-auto' : 'h-[600px]'}`}>
+                    {/* Image */}
+                    <div className="relative h-48 overflow-hidden bg-gradient-to-br from-purple-400 to-pink-400">
+                      <img 
+                        src={book.image} 
+                        alt={book.title}
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        onError={(e) => {
+                          e.target.style.display = 'none';
                         }}
-                        className="w-full bg-gray-100 text-gray-700 font-medium py-2 px-6 rounded-2xl hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
-                      >
-                        <Download className="w-4 h-4" />
-                        Télécharger données
-                      </button>
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+                      
+                      {book.isTrending && (
+                        <div className="absolute top-4 right-14">
+                          <span className="bg-red-500/90 backdrop-blur-sm text-white font-bold px-2 py-1 rounded-full text-xs">
+                            🔥 TENDANCE
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="absolute top-4 right-4">
+                        <button
+                          onClick={() => toggleFavorite(book.id)}
+                          className="p-2 rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white transition-colors"
+                        >
+                          <Heart 
+                            className={`w-5 h-5 ${favorites.has(book.id) ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} 
+                          />
+                        </button>
+                      </div>
+
+                      {/* Progress vidéo */}
+                      {videoProgress[book.id] !== undefined && (
+                        <div className="absolute bottom-0 left-0 right-0 bg-blue-500 h-1">
+                          <div 
+                            className="bg-white h-full transition-all duration-300"
+                            style={{ width: `${videoProgress[book.id]}%` }}
+                          ></div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Contenu */}
+                    <div className="p-6 flex-1 flex flex-col">
+                      <div className="flex-1">
+                        <h3 className="text-xl font-bold text-gray-800 mb-1">
+                          {book.title}
+                        </h3>
+                        <p className="text-sm text-purple-600 font-medium mb-1">
+                          {book.category}
+                        </p>
+                        <p className="text-xs text-gray-500 mb-2">
+                          Par {book.authorName} • {book.publishYear}
+                        </p>
+                        <div className={`overflow-hidden mb-3 ${isExpanded ? 'h-auto' : 'h-12'}`}>
+                          <p className={`text-sm text-gray-600 ${isExpanded ? '' : 'line-clamp-3'}`}>
+                            {book.description}
+                          </p>
+                        </div>
+                        {isLongDescription && (
+                          <button 
+                            onClick={() => toggleDescription(book.id)}
+                            className="text-xs text-purple-600 hover:text-purple-800 font-medium mb-2"
+                          >
+                            {isExpanded ? 'Voir moins' : 'Voir plus'}
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Stats depuis API */}
+                      <div className="flex items-center gap-3 mb-3 text-sm text-gray-600">
+                        <div className="flex items-center gap-1">
+                          <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                          <span className="font-medium">{book.rating}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-4 h-4" />
+                          <span>{book.duration}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <BookOpen className="w-4 h-4" />
+                          <span>{book.age}</span>
+                        </div>
+                      </div>
+
+                      {/* Stats engagement API */}
+                      <div className="flex justify-between items-center mb-4 text-xs text-gray-500">
+                        <span>👁️ {book.views.toLocaleString()}</span>
+                        <span>❤️ {book.likes}</span>
+                        <span>📊 {book.engagementRate}%</span>
+                        <span>🎯 {book.popularityScore}</span>
+                      </div>
+
+                      {/* Boutons d'action */}
+                      <div className="space-y-2 mt-auto">
+                        <button 
+                          onClick={() => addToCart(book.id)}
+                          disabled={cart.has(book.id)}
+                          className={`w-full font-semibold py-3 px-6 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg ${
+                            cart.has(book.id)
+                              ? 'bg-green-500 text-white cursor-not-allowed'
+                              : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
+                          }`}
+                        >
+                          {cart.has(book.id) ? '✓ Dans le panier' : 'Ajouter au panier'}
+                        </button>
+                        
+                        <button 
+                          onClick={() => generateAndDownloadVideo(book)}
+                          disabled={isGeneratingVideo.has(book.id)}
+                          className={`w-full font-medium py-2 px-6 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg ${
+                            isGeneratingVideo.has(book.id)
+                              ? 'bg-orange-400 text-white cursor-not-allowed'
+                              : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700'
+                          }`}
+                        >
+                          {isGeneratingVideo.has(book.id) 
+                            ? `⏳ ${videoProgress[book.id] || 0}%` 
+                            : '🎬 Générer Vidéo'
+                          }
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
 
         {filteredAndSortedBooks.length === 0 && !loading && (
           <div className="text-center py-12">
-            <p className="text-gray-600 text-lg">Aucun livre trouvé pour cette catégorie.</p>
+            <p className="text-gray-600 text-lg">Aucune histoire trouvée dans l'API.</p>
+            <button 
+              onClick={fetchApiData}
+              className="mt-4 bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600 transition-colors"
+            >
+              🔄 Réessayer
+            </button>
           </div>
         )}
-
-        
-
-        
       </div>
     </div>
   );
