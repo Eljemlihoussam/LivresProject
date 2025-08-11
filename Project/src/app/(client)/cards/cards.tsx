@@ -70,20 +70,20 @@ export default function ChildrenBooksCards() {
       
       return {
         id: story.id,
-        title: story.title,
-        category: categoryInfo?.name || "Adventure",
-        categoryAr: categoryInfo?.name_ar || "",
-        author: story.author,
-        description: story.description,
-        
-        // Prix basé sur durée audio
-        price: Math.max(10, Math.floor((story.audio_duration || 120) / 60) * 6 + Math.floor(Math.random() * 8)),
-        
-        age: story.range,
-        image: story.cover_img_url,
-        
-        // Rating converti depuis les données réelles
-        rating: Math.min(5, Math.max(3, (ratingCount * 0.8 + 3.2))).toFixed(1),
+  title: story.title,
+  category: categoryInfo?.name || "Adventure",
+  categoryAr: categoryInfo?.name_ar || "",
+  author: story.author,
+  description: story.description,
+  
+  // Prix basé sur durée audio
+  price: Math.max(10, Math.floor((story.audio_duration || 120) / 60) * 6 + Math.floor(Math.random() * 8)),
+  
+  age: story.range,
+  image: story.cover_img_url,
+  
+  // Rating converti depuis les données réelles
+  rating: Math.min(5, Math.max(3, (ratingCount * 0.8 + 3.2))).toFixed(1),
         
         // Durée depuis audio_duration
         duration: story.audio_duration 
@@ -385,53 +385,54 @@ export default function ChildrenBooksCards() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50 flex items-center justify-center dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Chargement depuis l'API...</h2>
-          <p className="text-gray-600">🔗 Connexion à votre serveur</p>
-          <p className="text-sm text-gray-500 mt-2">Vérifiez que l'API est accessible</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-purple-600 mx-auto mb-4 dark:border-purple-400"></div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2 dark:text-gray-200">Chargement des livres...</h2>
+          <p className="text-gray-600 dark:text-gray-400"> veuillez patienter  </p>
+          <p className="text-sm text-gray-500 mt-2 dark:text-gray-500"> Merci de votre patience  </p>
+          <p className="text-sm text-gray-500 mt-2 dark:text-gray-500"> Si le problème persiste, veuillez contacter le support.  </p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white p-6">
+    <div className="min-h-screen bg-white p-6 dark:bg-gray-900">
       <div className="max-w-7xl mx-auto">
         {/* Header avec statistiques API */}
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold text-gray-800 mb-4">
+          <h1 className="text-5xl font-bold text-gray-800 mb-4 dark:text-white">
             Histoires Magiques ✨
           </h1>
-          <p className="text-xl text-gray-600 mb-4">
+          <p className="text-xl text-gray-600 mb-4 dark:text-gray-300">
             Données chargées depuis votre API
           </p>
           
           {/* Stats globales depuis API */}
           {globalStats.totalBooks && (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 max-w-4xl mx-auto">
-              <div className="bg-blue-50 p-4 rounded-xl">
-                <div className="text-2xl font-bold text-blue-600">{globalStats.totalBooks}</div>
-                <div className="text-sm text-gray-600">Histoires</div>
+              <div className="bg-blue-50 p-4 rounded-xl dark:bg-blue-900/30">
+                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{globalStats.totalBooks}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">Histoires</div>
               </div>
-              <div className="bg-green-50 p-4 rounded-xl">
-                <div className="text-2xl font-bold text-green-600">{globalStats.totalViews?.toLocaleString()}</div>
-                <div className="text-sm text-gray-600">Vues totales</div>
+              <div className="bg-green-50 p-4 rounded-xl dark:bg-green-900/30">
+                <div className="text-2xl font-bold text-green-600 dark:text-green-400">{globalStats.totalViews?.toLocaleString()}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">Vues totales</div>
               </div>
-              <div className="bg-pink-50 p-4 rounded-xl">
-                <div className="text-2xl font-bold text-pink-600">⭐ {globalStats.averageRating}</div>
-                <div className="text-sm text-gray-600">Note moyenne</div>
+              <div className="bg-pink-50 p-4 rounded-xl dark:bg-pink-900/30">
+                <div className="text-2xl font-bold text-pink-600 dark:text-pink-400">⭐ {globalStats.averageRating}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">Note moyenne</div>
               </div>
-              <div className="bg-purple-50 p-4 rounded-xl">
-                <div className="text-2xl font-bold text-purple-600">{globalStats.trendingCount}</div>
-                <div className="text-sm text-gray-600">En tendance</div>
+              <div className="bg-purple-50 p-4 rounded-xl dark:bg-purple-900/30">
+                <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">{globalStats.trendingCount}</div>
+                <div className="text-sm text-gray-600 dark:text-gray-300">En tendance</div>
               </div>
             </div>
           )}
           
           {cart.size > 0 && (
-            <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full mb-4">
+            <div className="inline-flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-full mb-4 dark:bg-green-900/30 dark:text-green-300">
               <ShoppingCart className="w-4 h-4" />
               <span>{cart.size} livre(s) dans le panier</span>
             </div>
@@ -441,11 +442,11 @@ export default function ChildrenBooksCards() {
         {/* Filtres */}
         <div className="flex flex-wrap justify-center gap-4 mb-8">
           <div className="flex items-center gap-2">
-            <Filter className="w-4 h-4 text-gray-600" />
+            <Filter className="w-4 h-4 text-gray-600 dark:text-gray-400" />
             <select 
               value={selectedCategory}
               onChange={(e) => setSelectedCategory(e.target.value)}
-              className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+              className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
             >
               {categories.map(category => (
                 <option key={category} value={category}>{category}</option>
@@ -456,7 +457,7 @@ export default function ChildrenBooksCards() {
           <select 
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
-            className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            className="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
           >
             <option value="rating">Mieux notés</option>
             <option value="popularity">Plus populaires</option>
@@ -469,9 +470,9 @@ export default function ChildrenBooksCards() {
 
           <button 
             onClick={fetchApiData}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm"
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm dark:bg-blue-600 dark:hover:bg-blue-700"
           >
-            🔄 Actualiser API
+            🔄 Actualiser
           </button>
         </div>
         
@@ -481,7 +482,8 @@ export default function ChildrenBooksCards() {
             onClick={scrollLeft}
             disabled={!canScrollLeft}
             className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full shadow-lg transition-all duration-300 ${
-              canScrollLeft ? 'bg-white text-gray-700 hover:bg-gray-50' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              canScrollLeft ? 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700' 
+              : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500'
             }`}
           >
             <ChevronLeft className="w-6 h-6 mx-auto" />
@@ -491,7 +493,8 @@ export default function ChildrenBooksCards() {
             onClick={scrollRight}
             disabled={!canScrollRight}
             className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 w-12 h-12 rounded-full shadow-lg transition-all duration-300 ${
-              canScrollRight ? 'bg-white text-gray-700 hover:bg-gray-50' : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              canScrollRight ? 'bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700' 
+              : 'bg-gray-200 text-gray-400 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500'
             }`}
           >
             <ChevronRight className="w-6 h-6 mx-auto" />
@@ -513,9 +516,9 @@ export default function ChildrenBooksCards() {
                 const isLongDescription = book.description.length > 120;
                 
                 return (
-                  <div key={book.id} className={`bg-white rounded-3xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-300 hover:shadow-2xl group w-80 flex-shrink-0 flex flex-col ${isExpanded ? 'h-auto' : 'h-[600px]'}`}>
+                  <div key={book.id} className={`bg-white rounded-3xl shadow-xl overflow-hidden transform hover:scale-105 transition-all duration-300 hover:shadow-2xl group w-80 flex-shrink-0 flex flex-col dark:bg-gray-800 dark:hover:shadow-gray-700/50 ${isExpanded ? 'h-auto' : 'h-[600px]'}`}>
                     {/* Image */}
-                    <div className="relative h-48 overflow-hidden bg-gradient-to-br from-purple-400 to-pink-400">
+                    <div className="relative h-48 overflow-hidden bg-gradient-to-br from-purple-400 to-pink-400 dark:from-purple-600 dark:to-pink-600">
                       <img 
                         src={book.image} 
                         alt={book.title}
@@ -528,7 +531,7 @@ export default function ChildrenBooksCards() {
                       
                       {book.isTrending && (
                         <div className="absolute top-4 right-14">
-                          <span className="bg-red-500/90 backdrop-blur-sm text-white font-bold px-2 py-1 rounded-full text-xs">
+                          <span className="bg-red-500/90 backdrop-blur-sm text-white font-bold px-2 py-1 rounded-full text-xs dark:bg-red-600">
                             🔥 TENDANCE
                           </span>
                         </div>
@@ -537,19 +540,19 @@ export default function ChildrenBooksCards() {
                       <div className="absolute top-4 right-4">
                         <button
                           onClick={() => toggleFavorite(book.id)}
-                          className="p-2 rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white transition-colors"
+                          className="p-2 rounded-full bg-white/90 backdrop-blur-sm shadow-lg hover:bg-white transition-colors dark:bg-gray-800/90 dark:hover:bg-gray-700"
                         >
                           <Heart 
-                            className={`w-5 h-5 ${favorites.has(book.id) ? 'fill-red-500 text-red-500' : 'text-gray-600'}`} 
+                            className={`w-5 h-5 ${favorites.has(book.id) ? 'fill-red-500 text-red-500' : 'text-gray-600 dark:text-gray-400'}`} 
                           />
                         </button>
                       </div>
 
                       {/* Progress vidéo */}
                       {videoProgress[book.id] !== undefined && (
-                        <div className="absolute bottom-0 left-0 right-0 bg-blue-500 h-1">
+                        <div className="absolute bottom-0 left-0 right-0 bg-blue-500 h-1 dark:bg-blue-600">
                           <div 
-                            className="bg-white h-full transition-all duration-300"
+                            className="bg-white h-full transition-all duration-300 dark:bg-gray-200"
                             style={{ width: `${videoProgress[book.id]}%` }}
                           ></div>
                         </div>
@@ -557,26 +560,26 @@ export default function ChildrenBooksCards() {
                     </div>
 
                     {/* Contenu */}
-                    <div className="p-6 flex-1 flex flex-col">
+                    <div className="p-6 flex-1 flex flex-col dark:bg-gray-800">
                       <div className="flex-1">
-                        <h3 className="text-xl font-bold text-gray-800 mb-1">
+                        <h3 className="text-xl font-bold text-gray-800 mb-1 dark:text-white">
                           {book.title}
                         </h3>
-                        <p className="text-sm text-purple-600 font-medium mb-1">
+                        <p className="text-sm text-purple-600 font-medium mb-1 dark:text-purple-400">
                           {book.category}
                         </p>
-                        <p className="text-xs text-gray-500 mb-2">
+                        <p className="text-xs text-gray-500 mb-2 dark:text-gray-400">
                           Par {book.authorName} • {book.publishYear}
                         </p>
                         <div className={`overflow-hidden mb-3 ${isExpanded ? 'h-auto' : 'h-12'}`}>
-                          <p className={`text-sm text-gray-600 ${isExpanded ? '' : 'line-clamp-3'}`}>
+                          <p className={`text-sm text-gray-600 ${isExpanded ? '' : 'line-clamp-3'} dark:text-gray-300`}>
                             {book.description}
                           </p>
                         </div>
                         {isLongDescription && (
                           <button 
                             onClick={() => toggleDescription(book.id)}
-                            className="text-xs text-purple-600 hover:text-purple-800 font-medium mb-2"
+                            className="text-xs text-purple-600 hover:text-purple-800 font-medium mb-2 dark:text-purple-400 dark:hover:text-purple-300"
                           >
                             {isExpanded ? 'Voir moins' : 'Voir plus'}
                           </button>
@@ -584,7 +587,7 @@ export default function ChildrenBooksCards() {
                       </div>
 
                       {/* Stats depuis API */}
-                      <div className="flex items-center gap-3 mb-3 text-sm text-gray-600">
+                      <div className="flex items-center gap-3 mb-3 text-sm text-gray-600 dark:text-gray-400">
                         <div className="flex items-center gap-1">
                           <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
                           <span className="font-medium">{book.rating}</span>
@@ -600,7 +603,7 @@ export default function ChildrenBooksCards() {
                       </div>
 
                       {/* Stats engagement API */}
-                      <div className="flex justify-between items-center mb-4 text-xs text-gray-500">
+                      <div className="flex justify-between items-center mb-4 text-xs text-gray-500 dark:text-gray-500">
                         <span>👁️ {book.views.toLocaleString()}</span>
                         <span>❤️ {book.likes}</span>
                         <span>📊 {book.engagementRate}%</span>
@@ -614,8 +617,8 @@ export default function ChildrenBooksCards() {
                           disabled={cart.has(book.id)}
                           className={`w-full font-semibold py-3 px-6 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg ${
                             cart.has(book.id)
-                              ? 'bg-green-500 text-white cursor-not-allowed'
-                              : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700'
+                              ? 'bg-green-500 text-white cursor-not-allowed dark:bg-green-600'
+                              : 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700 dark:from-purple-700 dark:to-pink-700 dark:hover:from-purple-800 dark:hover:to-pink-800'
                           }`}
                         >
                           {cart.has(book.id) ? '✓ Dans le panier' : 'Ajouter au panier'}
@@ -626,8 +629,8 @@ export default function ChildrenBooksCards() {
                           disabled={isGeneratingVideo.has(book.id)}
                           className={`w-full font-medium py-2 px-6 rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-lg ${
                             isGeneratingVideo.has(book.id)
-                              ? 'bg-orange-400 text-white cursor-not-allowed'
-                              : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700'
+                              ? 'bg-orange-400 text-white cursor-not-allowed dark:bg-orange-500'
+                              : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 dark:from-blue-700 dark:to-indigo-700 dark:hover:from-blue-800 dark:hover:to-indigo-800'
                           }`}
                         >
                           {isGeneratingVideo.has(book.id) 
@@ -646,10 +649,10 @@ export default function ChildrenBooksCards() {
 
         {filteredAndSortedBooks.length === 0 && !loading && (
           <div className="text-center py-12">
-            <p className="text-gray-600 text-lg">Aucune histoire trouvée dans l'API.</p>
+            <p className="text-gray-600 text-lg dark:text-gray-400">Aucune histoire trouvée dans l'API.</p>
             <button 
               onClick={fetchApiData}
-              className="mt-4 bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600 transition-colors"
+              className="mt-4 bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600 transition-colors dark:bg-purple-600 dark:hover:bg-purple-700"
             >
               🔄 Réessayer
             </button>

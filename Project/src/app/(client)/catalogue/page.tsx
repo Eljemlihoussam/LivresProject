@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { Play, Filter, Search, Star, Clock, Loader2, ArrowRight } from 'lucide-react';
+import { useTheme } from '../../../context/ThemeContext'; // Ajustez le chemin selon votre structure
 
 interface Category {
   id: number;
@@ -18,7 +19,9 @@ interface Story {
   publication_date: string | null;
   cover_img_url: string;
   range: string;
-  story_id: number; 
+  story_id: number;
+  category_id?: number;
+  type?: string;
 }
 
 interface Rating {
@@ -39,6 +42,10 @@ const AudiobookCollection: React.FC = () => {
   const [apiData, setApiData] = useState<ApiData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Utiliser le ThemeContext au lieu de l'état local
+  const { theme } = useTheme();
+  const darkMode = theme === 'dark';
 
   // Récupérer les données depuis l'API
   useEffect(() => {
@@ -80,7 +87,7 @@ const AudiobookCollection: React.FC = () => {
     return `${minutes}min`;
   };
 
-  // Fonction pour obtenir une note aléatoire (puisque les vraies notes ne sont pas directement liées aux histoires)
+  // Fonction pour obtenir une note aléatoire
   const getRandomRating = (): number => {
     return parseFloat((4.2 + Math.random() * 0.7).toFixed(1));
   };
@@ -103,16 +110,23 @@ const AudiobookCollection: React.FC = () => {
     if (!apiData?.categoriesInfo) return [];
     
     return apiData.categoriesInfo.filter(story => {
+      // Filtrage par catégorie
       const matchesCategory = selectedCategory === 'Tous' || 
-        apiData.allCategories.some(cat => 
-          cat.name === selectedCategory && 
-          true
-        );
+        apiData.allCategories.some(cat => {
+          if (cat.name === selectedCategory) {
+            return story.category_id === cat.id || 
+                   story.type === cat.name || 
+                   story.title.toLowerCase().includes(cat.name.toLowerCase());
+          }
+          return false;
+        });
       
       const matchesAge = selectedAge === 'Tous' || story.range === selectedAge;
       
-      const matchesSearch = story.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           story.author.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = searchTerm === '' || 
+                           story.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           story.author.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           story.description.toLowerCase().includes(searchTerm.toLowerCase());
       
       return matchesCategory && matchesAge && matchesSearch;
     });
@@ -121,19 +135,15 @@ const AudiobookCollection: React.FC = () => {
   // Fonction pour rediriger vers la page de détail
   const handlePlayStory = (story: Story) => {
     console.log('Navigation vers la page de détail pour:', story.title, 'ID:', story.id);
-    // Redirection vers la page de détail avec l'ID de l'histoire
     window.location.href = `/audiobook/${story.story_id}`;
-    // Si vous utilisez Next.js router, utilisez plutôt :
-    // router.push(`/audiobook-player/${story.id}`);
   };
 
-  
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="text-center">
           <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Chargement des histoires...</p>
+          <p className={`text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>Chargement des histoires...</p>
         </div>
       </div>
     );
@@ -141,13 +151,13 @@ const AudiobookCollection: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className={`min-h-screen flex items-center justify-center ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
         <div className="text-center max-w-md mx-auto p-6">
           <div className="text-red-500 mb-4">
             <Search className="w-16 h-16 mx-auto" />
           </div>
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">Erreur de chargement</h3>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <h3 className={`text-xl font-semibold mb-2 ${darkMode ? 'text-gray-200' : 'text-gray-800'}`}>Erreur de chargement</h3>
+          <p className={`mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>{error}</p>
           <button 
             onClick={() => window.location.reload()}
             className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
@@ -160,26 +170,30 @@ const AudiobookCollection: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <header className="bg-gradient-to-r from-blue-50 to-purple-50 py-8 px-6">
+    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-white'}`}>
+      <header className={darkMode ? 'bg-gray-800 py-8 px-6' : 'bg-gradient-to-r from-blue-50 to-purple-50 py-8 px-6'}>
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">حكايات</h1>
-          <p className="text-gray-600 text-lg">اكتشف عالم القصص الممتعة للأطفال</p>
-          <p className="text-gray-500 mt-2">قصص خيالية ومغامرات، حكايات وخرافات، أميرات وحيوانات، لكل طفل حكايته!</p>
+          <h1 className={`text-4xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-800'}`}>حكايات</h1>
+          <p className={`text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>اكتشف عالم القصص الممتعة للأطفال</p>
+          <p className={`mt-2 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>قصص خيالية ومغامرات، حكايات وخرافات، أميرات وحيوانات، لكل طفل حكايته!</p>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-6 py-8">
         <div className="flex gap-8">
           <aside className="w-80 flex-shrink-0">
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sticky top-8">
+            <div className={`rounded-2xl shadow-lg border p-6 sticky top-8 ${
+              darkMode 
+                ? 'bg-gray-800 border-gray-700' 
+                : 'bg-white border-gray-100'
+            }`}>
               <div className="flex items-center gap-2 mb-6">
                 <Filter className="w-5 h-5 text-blue-600" />
-                <h2 className="text-xl font-semibold text-gray-800">المرشحات</h2>
+                <h2 className={`text-xl font-semibold ${darkMode ? 'text-white' : 'text-gray-800'}`}>المرشحات</h2>
               </div>
               
               <div className="mb-6">
-                <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
+                <label htmlFor="search" className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                   البحث
                 </label>
                 <div className="relative">
@@ -190,13 +204,17 @@ const AudiobookCollection: React.FC = () => {
                     placeholder="العنوان أو المؤلف..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors"
+                    className={`w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-colors ${
+                      darkMode 
+                        ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' 
+                        : 'border-gray-200'
+                    }`}
                   />
                 </div>
               </div>
 
               <div className="mb-6">
-                <h3 className="block text-sm font-medium text-gray-700 mb-3">الفئة</h3>
+                <h3 className={`block text-sm font-medium mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>الفئة</h3>
                 <div className="space-y-2" role="group" aria-label="فلترة حسب الفئة">
                   {categories.map(category => (
                     <button
@@ -204,8 +222,12 @@ const AudiobookCollection: React.FC = () => {
                       onClick={() => setSelectedCategory(category)}
                       className={`w-full text-left px-3 py-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 ${
                         selectedCategory === category
-                          ? 'bg-blue-100 text-blue-800 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50'
+                          ? darkMode 
+                            ? 'bg-blue-900 text-blue-200 font-medium'
+                            : 'bg-blue-100 text-blue-800 font-medium'
+                          : darkMode 
+                            ? 'text-gray-300 hover:bg-gray-700' 
+                            : 'text-gray-600 hover:bg-gray-50'
                       }`}
                       aria-pressed={selectedCategory === category}
                     >
@@ -216,7 +238,7 @@ const AudiobookCollection: React.FC = () => {
               </div>
 
               <div className="mb-6">
-                <h3 className="block text-sm font-medium text-gray-700 mb-3">العمر</h3>
+                <h3 className={`block text-sm font-medium mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>العمر</h3>
                 <div className="space-y-2" role="group" aria-label="فلترة حسب العمر">
                   {ageGroups.map(age => (
                     <button
@@ -224,8 +246,12 @@ const AudiobookCollection: React.FC = () => {
                       onClick={() => setSelectedAge(age)}
                       className={`w-full text-left px-3 py-2 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 ${
                         selectedAge === age
-                          ? 'bg-purple-100 text-purple-800 font-medium'
-                          : 'text-gray-600 hover:bg-gray-50'
+                          ? darkMode 
+                            ? 'bg-purple-900 text-purple-200 font-medium'
+                            : 'bg-purple-100 text-purple-800 font-medium'
+                          : darkMode 
+                            ? 'text-gray-300 hover:bg-gray-700' 
+                            : 'text-gray-600 hover:bg-gray-50'
                       }`}
                       aria-pressed={selectedAge === age}
                     >
@@ -235,8 +261,8 @@ const AudiobookCollection: React.FC = () => {
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-gray-200">
-                <p className="text-sm text-gray-500">
+              <div className={`pt-4 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                   {filteredStories.length} قصة متوفرة
                 </p>
               </div>
@@ -249,7 +275,11 @@ const AudiobookCollection: React.FC = () => {
                 {filteredStories.map((story, index) => (
                   <article 
                     key={`${story.title}-${index}`}
-                    className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 group"
+                    className={`rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border group ${
+                      darkMode 
+                        ? 'bg-gray-800 border-gray-700' 
+                        : 'bg-white border-gray-100'
+                    }`}
                   >
                     <div className="relative h-48 overflow-hidden">
                       <img 
@@ -280,11 +310,17 @@ const AudiobookCollection: React.FC = () => {
                     </div>
 
                     <div className="p-5">
-                      <h3 className="font-bold text-lg text-gray-800 mb-1 line-clamp-1" dir="rtl">{story.title}</h3>
-                      <p className="text-gray-600 text-sm mb-3">{story.author}</p>
-                      <p className="text-gray-500 text-sm mb-4 line-clamp-2" dir="rtl">{story.description}</p>
+                      <h3 className={`font-bold text-lg mb-1 line-clamp-1 ${darkMode ? 'text-white' : 'text-gray-800'}`} dir="rtl">
+                        {story.title}
+                      </h3>
+                      <p className={`text-sm mb-3 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                        {story.author}
+                      </p>
+                      <p className={`text-sm mb-4 line-clamp-2 ${darkMode ? 'text-gray-300' : 'text-gray-500'}`} dir="rtl">
+                        {story.description}
+                      </p>
                       
-                      <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
+                      <div className={`flex items-center justify-between text-sm mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                         <div className="flex items-center gap-1">
                           <Clock className="w-4 h-4" />
                           <span>{formatDuration(story.audio_duration)}</span>
@@ -309,11 +345,15 @@ const AudiobookCollection: React.FC = () => {
               </div>
             ) : (
               <div className="text-center py-12">
-                <div className="text-gray-400 mb-4">
+                <div className={`mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-400'}`}>
                   <Search className="w-16 h-16 mx-auto" />
                 </div>
-                <h3 className="text-xl font-semibold text-gray-600 mb-2">لا توجد قصص</h3>
-                <p className="text-gray-500">جرب تغيير معايير البحث</p>
+                <h3 className={`text-xl font-semibold mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                  لا توجد قصص
+                </h3>
+                <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                  جرب تغيير معايير البحث
+                </p>
               </div>
             )}
           </section>

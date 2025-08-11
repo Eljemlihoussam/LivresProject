@@ -33,8 +33,8 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white">
-      <HeaderSection />
+    <div >
+      <HeaderSection  />
       
       <div 
         data-section="cards"

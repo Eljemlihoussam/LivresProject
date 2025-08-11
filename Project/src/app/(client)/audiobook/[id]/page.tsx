@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -34,6 +33,7 @@ import {
   Headphones,
   Waves
 } from 'lucide-react';
+import { useTheme } from "../../../../context/ThemeContext"; // Assurez-vous que le chemin est correct
 
 interface Story {
   id: number;
@@ -41,7 +41,7 @@ interface Story {
   author: string;
   description: string;
   cover_img_url: string;
-  range?: string; // Optionnel si pas dans votre API
+  range?: string;
 }
 
 interface Chapter {
@@ -50,15 +50,16 @@ interface Chapter {
   title: string;
   content: string;
   audio_url: string;
-  image_url?: string; // Optionnel si pas toujours présent
-  createdAt?: string; // Optionnel
-  updatedAt?: string; // Optionnel
+  image_url?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
-// Composant pour les animaux réalistes avec mouvements aléatoires
 const RealisticAnimal = ({ type, index }: { type: 'elephant' | 'monkey' | 'bird' | 'rabbit' | 'fox' | 'deer', index: number }) => {
   const [currentPosition, setCurrentPosition] = useState({ x: 0, y: 0 });
   const [direction, setDirection] = useState(Math.random() * 360);
+  const { theme } = useTheme();
+  const darkMode = theme === "dark";
   
   const [animalPath] = useState(() => {
     const path = [];
@@ -255,8 +256,9 @@ const RealisticAnimal = ({ type, index }: { type: 'elephant' | 'monkey' | 'bird'
   );
 };
 
-// Composant pour les étoiles scintillantes
 const TwinklingStar = ({ index }: { index: number }) => {
+  const { theme } = useTheme();
+  const darkMode = theme === "dark";
   const [opacity, setOpacity] = useState(Math.random());
   const [position] = useState({
     x: Math.random() * 100,
@@ -282,10 +284,10 @@ const TwinklingStar = ({ index }: { index: number }) => {
       }}
     >
       <svg width="16" height="16" viewBox="0 0 16 16">
-        <path
-          d="M8 0 L9.5 6.5 L16 8 L9.5 9.5 L8 16 L6.5 9.5 L0 8 L6.5 6.5 Z"
-          fill="rgba(255, 255, 255, 0.8)"
-        />
+       <path
+  d="M8 0 L9.5 6.5 L16 8 L9.5 9.5 L8 16 L6.5 9.5 L0 8 L6.5 6.5 Z"
+  fill="rgba(196, 43, 43, 0.8)" // Couleur fixe comme dans votre version originale
+/>
       </svg>
     </div>
   );
@@ -293,6 +295,8 @@ const TwinklingStar = ({ index }: { index: number }) => {
 
 const AudiobookPlayer: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement>(null);
+  const { theme } = useTheme();
+  const darkMode = theme === "dark";
   
   // États principaux
   const [story, setStory] = useState<Story | null>(null);
@@ -305,7 +309,6 @@ const AudiobookPlayer: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [showText, setShowText] = useState<boolean>(false);
-  const [darkMode, setDarkMode] = useState<boolean>(true);
   const [playbackRate, setPlaybackRate] = useState<number>(1);
   const [isLooping, setIsLooping] = useState<boolean>(false);
   const [isShuffling, setIsShuffling] = useState<boolean>(false);
@@ -328,107 +331,79 @@ const AudiobookPlayer: React.FC = () => {
     return animals;
   });
 
- const fetchStoryData = async (storyId: number = 33) => {
-  try {
-    setLoading(true);
-    setError(null);
+  const fetchStoryData = async (storyId: number = 33) => {
+    try {
+      setLoading(true);
+      setError(null);
 
-    console.log('Chargement des données pour story_id:', storyId); // Pour debug
+      const response = await fetch(`/api/story_chapter?story_id=${storyId}`);
+      if (!response.ok) {
+        throw new Error(`Erreur lors du chargement des données: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (!data.success || !data.story || !data.chapters) {
+        throw new Error('Structure de données invalide');
+      }
 
-    // Récupération des données de l'histoire ET des chapitres en une seule requête
-    const response = await fetch(`/api/story_chapter?story_id=${storyId}`);
-    if (!response.ok) {
-      throw new Error(`Erreur lors du chargement des données: ${response.status}`);
+      setStory({
+        id: data.story.id,
+        title: data.story.title,
+        author: data.story.author,
+        description: data.story.description,
+        cover_img_url: data.story.cover_img_url,
+        range: "3-8 سنوات"
+      });
+
+      const transformedChapters = data.chapters.map((chapter: any, index: number) => ({
+        id: chapter.id,
+        story_id: chapter.story_id,
+        title: chapter.title,
+        content: chapter.content,
+        audio_url: chapter.audio_url,
+        image_url: chapter.image_url || data.story.cover_img_url,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }));
+
+      setChapters(transformedChapters);
+
+      if (transformedChapters.length > 0) {
+        setCurrentChapterIndex(0);
+      }
+
+    } catch (err) {
+      console.error('Erreur lors du chargement des données:', err);
+      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
+    } finally {
+      setLoading(false);
     }
-    
-    const data = await response.json();
-    console.log('Données reçues:', data); // Pour debug
-    
-    // Vérification de la structure de réponse
-    if (!data.success || !data.story || !data.chapters) {
-      throw new Error('Structure de données invalide');
-    }
-
-    // Mise à jour des états avec les données reçues
-    setStory({
-      id: data.story.id,
-      title: data.story.title,
-      author: data.story.author,
-      description: data.story.description,
-      cover_img_url: data.story.cover_img_url,
-      range: "3-8 سنوات" // Vous pouvez ajouter ce champ à votre API si nécessaire
-    });
-
-    // Transformation des chapitres pour correspondre à l'interface Chapter
-    const transformedChapters = data.chapters.map((chapter: any, index: number) => ({
-      id: chapter.id,
-      story_id: chapter.story_id,
-      title: chapter.title,
-      content: chapter.content,
-      audio_url: chapter.audio_url,
-      image_url: chapter.image_url || data.story.cover_img_url, // Utiliser l'image du chapitre ou celle de l'histoire
-      createdAt: new Date().toISOString(), // Vous pouvez ajouter ces champs à votre API
-      updatedAt: new Date().toISOString()
-    }));
-
-    setChapters(transformedChapters);
-
-    // Réinitialiser l'index si nécessaire
-    if (transformedChapters.length > 0) {
-      setCurrentChapterIndex(0);
-    }
-
-    console.log('Données traitées avec succès:', { story: data.story, chaptersCount: transformedChapters.length }); // Pour debug
-
-  } catch (err) {
-    console.error('Erreur lors du chargement des données:', err);
-    setError(err instanceof Error ? err.message : 'Une erreur est survenue');
-    
-    // Données de fallback en cas d'erreur (optionnel)
-    // Vous pouvez garder votre fallback existant ou le supprimer
-  } finally {
-    setLoading(false);
-  }
-};
-
-  // Fonction de retry
-  const retryFetch = () => {
-    fetchStoryData();
   };
 
-  // Effect pour charger les données au montage
- useEffect(() => {
-  // Récupérer l'ID de l'histoire depuis le chemin de l'URL
-  // Format: /audiobook/58 ou /audiobook/33
-  const pathParts = window.location.pathname.split('/');
-  let storyId = 33; // ID par défaut
-  
-  // Rechercher "audiobook" dans le chemin et prendre l'élément suivant
-  const audiobookIndex = pathParts.findIndex(part => part === 'audiobook');
-  if (audiobookIndex !== -1 && pathParts[audiobookIndex + 1]) {
-    const pathId = pathParts[audiobookIndex + 1];
-    // Vérifier que c'est un nombre valide
-    if (!isNaN(Number(pathId)) && Number(pathId) > 0) {
-      storyId = parseInt(pathId);
+  useEffect(() => {
+    const pathParts = window.location.pathname.split('/');
+    let storyId = 33;
+    
+    const audiobookIndex = pathParts.findIndex(part => part === 'audiobook');
+    if (audiobookIndex !== -1 && pathParts[audiobookIndex + 1]) {
+      const pathId = pathParts[audiobookIndex + 1];
+      if (!isNaN(Number(pathId)) && Number(pathId) > 0) {
+        storyId = parseInt(pathId);
+      }
     }
-  }
-  
-  console.log('Chemin URL:', window.location.pathname);
-  console.log('Story ID récupéré:', storyId);
-  
-  fetchStoryData(storyId);
-}, []);
+    
+    fetchStoryData(storyId);
+  }, []);
 
   const currentChapter = chapters[currentChapterIndex];
 
-  // Fonctions utilitaires
   const formatTime = (time: number): string => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  // Fonctions de contrôle audio
   const togglePlayPause = () => {
     if (audioRef.current) {
       if (isPlaying) {
@@ -501,7 +476,6 @@ const AudiobookPlayer: React.FC = () => {
     }
   };
 
-  // Effect pour la gestion audio
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -538,10 +512,13 @@ const AudiobookPlayer: React.FC = () => {
     };
   }, [currentChapterIndex, chapters.length, isLooping, volume, playbackRate]);
 
-  // Écran d'erreur
   if (error && !story) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center relative overflow-hidden">
+      <div className={`min-h-screen flex items-center justify-center relative overflow-hidden ${
+        darkMode 
+          ? 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900' 
+          : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'
+      }`}>
         {decorativeAnimals.slice(0, 5).map((animal, index) => (
           <RealisticAnimal key={`error-${index}`} type={animal.type} index={index} />
         ))}
@@ -550,7 +527,9 @@ const AudiobookPlayer: React.FC = () => {
           <TwinklingStar key={`error-star-${i}`} index={i} />
         ))}
         
-        <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-12 border border-white/20 max-w-md w-full mx-4 relative z-20 text-center">
+        <div className={`bg-white/10 backdrop-blur-xl rounded-3xl p-12 border max-w-md w-full mx-4 relative z-20 text-center ${
+          darkMode ? 'border-white/20' : 'border-white/30'
+        }`}>
           <div className="w-20 h-20 mx-auto mb-6 bg-red-500/20 rounded-full flex items-center justify-center">
             <AlertCircle className="w-10 h-10 text-red-400" />
           </div>
@@ -569,7 +548,11 @@ const AudiobookPlayer: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center relative overflow-hidden">
+      <div className={`min-h-screen flex items-center justify-center relative overflow-hidden ${
+        darkMode 
+          ? 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900' 
+          : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'
+      }`}>
         {decorativeAnimals.slice(0, 5).map((animal, index) => (
           <RealisticAnimal key={`loading-${index}`} type={animal.type} index={index} />
         ))}
@@ -578,20 +561,24 @@ const AudiobookPlayer: React.FC = () => {
           <TwinklingStar key={`loading-star-${i}`} index={i} />
         ))}
         
-        <div className="bg-white/10 backdrop-blur-xl rounded-3xl p-12 border border-white/20 max-w-md w-full mx-4 relative z-20">
+        <div className={`bg-white/10 backdrop-blur-xl rounded-3xl p-12 border max-w-md w-full mx-4 relative z-20 ${
+          darkMode ? 'border-white/20' : 'border-white/30'
+        }`}>
           <div className="text-center">
             <div className="relative mb-8">
               <div className="w-20 h-20 mx-auto">
                 <div className="absolute inset-0 rounded-full bg-gradient-to-r from-violet-400 to-purple-400 animate-pulse"></div>
-                <div className="absolute inset-2 rounded-full bg-slate-900"></div>
+                <div className={`absolute inset-2 rounded-full ${
+                  darkMode ? 'bg-slate-900' : 'bg-white'
+                }`}></div>
                 <Headphones className="absolute inset-4 w-12 h-12 text-violet-400" />
               </div>
             </div>
-            <h3 className="text-2xl font-bold text-white mb-4">جاري التحميل...</h3>
+            <h3 className="text-2xl font-bold text-black mb-4">جاري التحميل</h3>
             <div className="w-full bg-white/10 rounded-full h-3 mb-4">
               <div className="bg-gradient-to-r from-violet-400 to-purple-400 h-3 rounded-full animate-pulse" style={{ width: '60%' }}></div>
             </div>
-            <p className="text-white/70">تحضير قصتك المفضلة</p>
+            <p className="text-black/70">تحضير قصتك المفضلة</p>
           </div>
         </div>
       </div>
@@ -623,8 +610,8 @@ const AudiobookPlayer: React.FC = () => {
           onClick={() => window.history.back()}
           className={`p-3 rounded-2xl backdrop-blur-xl border transition-all duration-200 hover:scale-110 ${
             darkMode 
-              ? 'bg-slate-800/50 border-slate-700/50 text-white hover:bg-slate-700/70' 
-              : 'bg-white/50 border-white/50 text-slate-700 hover:bg-white/70'
+              ? 'bg-violet-600 border-slate-700/50 text-white hover:bg-slate-700/70' 
+              : 'bg-sky-200 border-white/50 text-slate-700 hover:bg-sky-200/70'
           }`}
         >
           <ChevronLeft className="w-6 h-6" />
@@ -640,17 +627,7 @@ const AudiobookPlayer: React.FC = () => {
         </div>
 
         <div className="flex gap-2">
-          {/* Suppression de button dark et light mode par ce que deja exister dans navbar pour centraliser */}
-          {/* <button
-            onClick={() => setDarkMode(!darkMode)}
-            className={`p-3 rounded-2xl backdrop-blur-xl border transition-all duration-200 hover:scale-110 ${
-              darkMode 
-                ? 'bg-slate-800/50 border-slate-700/50 text-white hover:bg-slate-700/70' 
-                : 'bg-white/50 border-white/50 text-slate-700 hover:bg-white/70'
-            }`}
-          >
-            {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-          </button> */}
+          {/* Bouton supprimé comme demandé */}
         </div>
       </header>
 
@@ -700,19 +677,20 @@ const AudiobookPlayer: React.FC = () => {
             
             {/* Décorations internes du player avec thème d'animaux */}
             <div className="absolute top-4 right-4 opacity-20">
-              <svg width="40" height="40" viewBox="0 0 40 40">
-                <path d="M20 8 C25 8, 28 12, 28 16 C28 20, 25 24, 20 32 C15 24, 12 20, 12 16 C12 12, 15 8, 20 8 Z" fill="currentColor" />
-                <circle cx="20" cy="16" r="4" fill="rgba(255,255,255,0.5)" />
-              </svg>
-            </div>
+  <svg width="40" height="40" viewBox="0 0 40 40">
+    <path d="M20 8 C25 8, 28 12, 28 16 C28 20, 25 24, 20 32 C15 24, 12 20, 12 16 C12 12, 15 8, 20 8 Z" 
+          fill="currentColor" />
+    <circle cx="20" cy="16" r="4" fill="rgba(164, 85, 85, 0.5)" />
+  </svg>
+</div>
             
             <div className="absolute bottom-4 left-4 opacity-20">
               <svg width="40" height="40" viewBox="0 0 40 40">
                 <ellipse cx="20" cy="30" rx="12" ry="6" fill="currentColor" />
                 <ellipse cx="20" cy="20" rx="8" ry="10" fill="currentColor" />
                 <circle cx="20" cy="12" r="6" fill="currentColor" />
-                <circle cx="17" cy="10" r="1" fill="rgba(255,255,255,0.8)" />
-                <circle cx="23" cy="10" r="1" fill="rgba(255,255,255,0.8)" />
+                <circle cx="17" cy="10" r="1" fill={darkMode ? "rgba(255,255,255,0.8)" : "rgba(59,130,246,0.8)"} />
+                <circle cx="23" cy="10" r="1" fill={darkMode ? "rgba(255,255,255,0.8)" : "rgba(59,130,246,0.8)"} />
               </svg>
             </div>
 
@@ -734,7 +712,7 @@ const AudiobookPlayer: React.FC = () => {
                     {[...Array(20)].map((_, i) => (
                       <div
                         key={i}
-                        className={`bg-white/80 rounded-full animate-pulse ${
+                        className={`${darkMode ? 'bg-white/80' : 'bg-violet-500/80'} rounded-full animate-pulse ${
                           i % 4 === 0 ? 'w-1 h-8' : 
                           i % 4 === 1 ? 'w-1 h-6' : 
                           i % 4 === 2 ? 'w-1 h-10' : 'w-1 h-4'

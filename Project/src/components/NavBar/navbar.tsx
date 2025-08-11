@@ -1,40 +1,50 @@
 "use client"
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { ChevronDown, Search, User, Settings, LogOut, BookOpen, Heart, Moon, Sun } from 'lucide-react';
+import { useRouter } from 'next/navigation'; // ou 'next/router' pour Next.js 12 et antérieur
+import { ChevronDown, Search, User, Settings, LogOut, BookOpen, Heart, Moon, Sun, UserPlus, LogIn, Users } from 'lucide-react';
+import { useTheme } from '../../context/ThemeContext';
 
 const Navbar = () => {
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  
+  // Router pour la navigation
+  const router = useRouter();
+  
+  // Simulation de l'état de session - vous pouvez le remplacer par votre logique de session
+  const [user, setUser] = useState(null); // null = pas connecté, objet = connecté
+  
+  // Utiliser le ThemeContext au lieu de l'état local
+  const { theme, toggleTheme } = useTheme();
+  const isDarkMode = theme === 'dark';
 
-  // Charger le thème depuis sessionStorage au montage du composant
-  useEffect(() => {
-    const savedTheme = sessionStorage.getItem('theme');
-    if (savedTheme) {
-      setIsDarkMode(savedTheme === 'dark');
-    } else {
-      // Détecter la préférence système si aucune préférence n'est sauvegardée
-      setIsDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches);
-    }
-  }, []);
+  // Fonctions de gestion de l'authentification
+  const handleSignIn = () => {
+    setIsProfileOpen(false); // Fermer le dropdown
+    router.push('/signin'); // Redirection vers la page de connexion
+  };
 
-  // Appliquer le thème et sauvegarder dans sessionStorage
-  useEffect(() => {
-    const root = document.documentElement;
-    if (isDarkMode) {
-      root.classList.add('dark');
-      sessionStorage.setItem('theme', 'dark');
-    } else {
-      root.classList.remove('dark');
-      sessionStorage.setItem('theme', 'light');
-    }
-  }, [isDarkMode]);
+  const handleSignUp = () => {
+    setIsProfileOpen(false); // Fermer le dropdown
+    router.push('/signup'); // Redirection vers la page d'inscription
+  };
 
-  const toggleTheme = () => {
-    setIsDarkMode(!isDarkMode);
+  const handleGuestMode = () => {
+    console.log('Connexion en tant qu\'invité');
+    // Implémentez votre logique de mode invité
+    setUser({ isGuest: true, name: 'Invité' });
+    setIsProfileOpen(false);
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    setIsProfileOpen(false);
+    // Optionnel : redirection vers la page d'accueil après déconnexion
+    router.push('/');
+    console.log('Déconnexion');
   };
 
   return (
@@ -52,37 +62,121 @@ const Navbar = () => {
             </button>
             
             {isProfileOpen && (
-              <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-2xl z-20 overflow-hidden">
-                <div className="bg-blue-500 dark:bg-blue-600 p-4 text-white">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                      <User className="w-5 h-5" />
+              <div className="absolute top-full left-0 mt-2 w-72 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-2xl z-20 overflow-hidden">
+                {user ? (
+                  // Menu pour utilisateur connecté
+                  <>
+                    <div className="bg-gradient-to-r from-blue-500 to-purple-600 dark:from-blue-600 dark:to-purple-700 p-4 text-white">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                          {user.isGuest ? (
+                            <Users className="w-6 h-6" />
+                          ) : (
+                            <User className="w-6 h-6" />
+                          )}
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-lg">
+                            {user.isGuest ? 'Mode Invité' : (user.name || 'John Doe')}
+                          </h3>
+                          <p className="text-sm opacity-90">
+                            {user.isGuest ? 'Accès limité' : (user.email || 'john.doe@email.com')}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold">John Doe</h3>
-                      <p className="text-sm opacity-90">john.doe@email.com</p>
+                    <div className="py-2">
+                      {!user.isGuest && (
+                        <>
+                          <button className="flex items-center w-full px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 transition-all duration-200">
+                            <BookOpen className="w-4 h-4 mr-3" />
+                            Mes Livres
+                          </button>
+                          <button className="flex items-center w-full px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 transition-all duration-200">
+                            <Heart className="w-4 h-4 mr-3" />
+                            Favoris
+                          </button>
+                          <button className="flex items-center w-full px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 transition-all duration-200">
+                            <Settings className="w-4 h-4 mr-3" />
+                            Paramètres
+                          </button>
+                          <hr className="my-2 border-gray-200 dark:border-gray-600" />
+                        </>
+                      )}
+                      {user.isGuest && (
+                        <>
+                          <div className="px-4 py-2 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-700/50">
+                            Connectez-vous pour accéder à toutes les fonctionnalités
+                          </div>
+                          <button 
+                            onClick={handleSignIn}
+                            className="flex items-center w-full px-4 py-3 text-sm text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all duration-200"
+                          >
+                            <LogIn className="w-4 h-4 mr-3" />
+                            Se connecter
+                          </button>
+                          <hr className="my-2 border-gray-200 dark:border-gray-600" />
+                        </>
+                      )}
+                      <button 
+                        onClick={handleLogout}
+                        className="flex items-center w-full px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200"
+                      >
+                        <LogOut className="w-4 h-4 mr-3" />
+                        Se déconnecter
+                      </button>
                     </div>
-                  </div>
-                </div>
-                <div className="py-2">
-                  <button className="flex items-center w-full px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 transition-all duration-200">
-                    <BookOpen className="w-4 h-4 mr-3" />
-                    Mes Livres
-                  </button>
-                  <button className="flex items-center w-full px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 transition-all duration-200">
-                    <Heart className="w-4 h-4 mr-3" />
-                    Favoris
-                  </button>
-                  <button className="flex items-center w-full px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 transition-all duration-200">
-                    <Settings className="w-4 h-4 mr-3" />
-                    Paramètres
-                  </button>
-                  <hr className="my-2 border-gray-200 dark:border-gray-600" />
-                  <button className="flex items-center w-full px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200">
-                    <LogOut className="w-4 h-4 mr-3" />
-                    Se déconnecter
-                  </button>
-                </div>
+                  </>
+                ) : (
+                  // Menu pour utilisateur non connecté
+                  <>
+                    <div className="bg-gradient-to-r from-indigo-500 to-purple-600 dark:from-indigo-600 dark:to-purple-700 p-6 text-white text-center">
+                      <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <User className="w-8 h-8" />
+                      </div>
+                      <h3 className="font-bold text-xl mb-1">Bienvenue !</h3>
+                      <p className="text-sm opacity-90">Connectez-vous pour une expérience personnalisée</p>
+                    </div>
+                    <div className="p-4 space-y-3">
+                      <button 
+                        onClick={handleSignIn}
+                        className="flex items-center justify-center w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-lg"
+                      >
+                        <LogIn className="w-4 h-4 mr-2" />
+                        Se connecter
+                      </button>
+                      
+                      <button 
+                        onClick={handleSignUp}
+                        className="flex items-center justify-center w-full px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-md hover:shadow-lg"
+                      >
+                        <UserPlus className="w-4 h-4 mr-2" />
+                        S'inscrire
+                      </button>
+                      
+                      <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                          <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+                        </div>
+                        <div className="relative flex justify-center text-sm">
+                          <span className="px-2 bg-white dark:bg-gray-800 text-gray-500 dark:text-gray-400">ou</span>
+                        </div>
+                      </div>
+                      
+                      <button 
+                        onClick={handleGuestMode}
+                        className="flex items-center justify-center w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 hover:border-indigo-500 dark:hover:border-indigo-400 text-gray-700 dark:text-gray-200 hover:text-indigo-600 dark:hover:text-indigo-400 rounded-lg font-medium transition-all duration-200 transform hover:scale-105"
+                      >
+                        <Users className="w-4 h-4 mr-2" />
+                        Continuer en tant qu'invité
+                      </button>
+                      
+                      <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-3 leading-relaxed">
+                        En tant qu'invité, vous pouvez parcourir le contenu mais certaines fonctionnalités seront limitées.
+                      </p>
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -163,19 +257,6 @@ const Navbar = () => {
 
         {/* Section droite */}
         <div className="flex items-center space-x-2">
-          {/* Bouton Dark/Light Mode */}
-          <button 
-            onClick={toggleTheme}
-            className="p-2 hover:bg-blue-100 dark:hover:bg-blue-800 rounded-full transition-all duration-300 group"
-            aria-label="Basculer le thème"
-          >
-            {isDarkMode ? (
-              <Sun className="w-5 h-5 text-yellow-500 group-hover:text-yellow-400 transition-colors" />
-            ) : (
-              <Moon className="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-colors" />
-            )}
-          </button>
-
           {/* Bouton de recherche */}
           <div className="relative">
             <button 
@@ -183,6 +264,19 @@ const Navbar = () => {
               className="p-2 hover:bg-blue-100 dark:hover:bg-blue-800 rounded-full transition-all duration-300 group"
             >
               <Search className="w-5 h-5 text-gray-600 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
+            </button>
+            
+            {/* Bouton Dark/Light Mode - utilise maintenant le ThemeContext */}
+            <button 
+              onClick={toggleTheme}
+              className="p-2 hover:bg-blue-100 dark:hover:bg-blue-800 rounded-full transition-all duration-300 group ml-2"
+              aria-label="Basculer le thème"
+            >
+              {isDarkMode ? (
+                <Sun className="w-5 h-5 text-yellow-500 group-hover:text-yellow-400 transition-colors" />
+              ) : (
+                <Moon className="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-colors" />
+              )}
             </button>
             
             {isSearchOpen && (
@@ -204,7 +298,7 @@ const Navbar = () => {
                   <div className="mb-3">
                     <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Recherches populaires</h4>
                     <div className="flex flex-wrap gap-2">
-                      {['Romans', 'Science-fiction', 'Histoire', 'Philosophie'].map((tag) => (
+                      {['Fairy Tales', 'Adventures', 'History', 'Animals and Nature'].map((tag) => (
                         <button
                           key={tag}
                           className="px-3 py-1 bg-gray-100 dark:bg-gray-700 hover:bg-blue-100 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 rounded-full text-sm text-gray-600 dark:text-gray-300 transition-all duration-200"

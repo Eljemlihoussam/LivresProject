@@ -12,11 +12,11 @@ const Footer = () => {
           <div className="lg:col-span-1">
             <div className="flex items-center mb-4">
               <img 
-                src="/images/bar/livre_site.png" 
+                src="/images/bar/hikaya.png" 
                 alt="LIVRENF Logo" 
                 className="w-12 h-12 mr-3" 
               />
-              <span className="text-xl font-bold text-blue-400">LIVRENF</span>
+              
             </div>
             <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-300">
               Votre plateforme de lecture numérique. Découvrez des milliers de livres, 

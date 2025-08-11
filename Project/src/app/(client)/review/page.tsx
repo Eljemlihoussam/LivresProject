@@ -85,27 +85,27 @@ const ReviewsSection = () => {
       <Star
         key={i}
         className={`w-5 h-5 ${
-          i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'
+          i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300 dark:text-gray-500'
         }`}
       />
     ));
   };
 
   return (
-    <section className="relative py-16 bg-white">
+    <section className="relative py-16 bg-white dark:bg-gray-900">
       {/* Subtle decorative elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-10 right-10 w-32 h-32 bg-blue-50 rounded-full opacity-50"></div>
-        <div className="absolute bottom-10 left-10 w-24 h-24 bg-purple-50 rounded-full opacity-50"></div>
+        <div className="absolute top-10 right-10 w-32 h-32 bg-blue-50 rounded-full opacity-50 dark:bg-blue-900/30"></div>
+        <div className="absolute bottom-10 left-10 w-24 h-24 bg-purple-50 rounded-full opacity-50 dark:bg-purple-900/30"></div>
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
         {/* Header */}
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
             Témoignages clients
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
             Découvrez ce que nos clients pensent de nos services
           </p>
         </div>
@@ -114,18 +114,18 @@ const ReviewsSection = () => {
         <div className="max-w-4xl mx-auto">
           <div className="relative">
             {/* Main Review Card */}
-            <div className="bg-gray-50 rounded-2xl shadow-lg border border-gray-100 p-6 md:p-8 transition-all duration-500 hover:shadow-xl">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700 p-6 md:p-8 transition-all duration-500 hover:shadow-xl dark:hover:shadow-gray-700/50">
               <div className="flex flex-col md:flex-row items-center gap-6">
                 {/* Avatar */}
                 <div className="relative">
-                  <div className="w-20 h-20 rounded-full overflow-hidden ring-2 ring-gray-200 shadow-md">
+                  <div className="w-20 h-20 rounded-full overflow-hidden ring-2 ring-gray-200 dark:ring-gray-600 shadow-md">
                     <img
                       src={reviews[currentReview].avatar}
                       alt={reviews[currentReview].name}
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <div className="absolute -top-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                  <div className="absolute -top-1 -right-1 w-6 h-6 bg-blue-500 dark:bg-blue-600 rounded-full flex items-center justify-center">
                     <Quote className="w-3 h-3 text-white" />
                   </div>
                 </div>
@@ -138,16 +138,16 @@ const ReviewsSection = () => {
                   </div>
 
                   {/* Review Text */}
-                  <blockquote className="text-base md:text-lg text-gray-700 leading-relaxed mb-4 font-medium">
+                  <blockquote className="text-base md:text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-4 font-medium">
                     "{reviews[currentReview].text}"
                   </blockquote>
 
                   {/* Author Info */}
                   <div>
-                    <h4 className="text-xl font-bold text-gray-900 mb-1">
+                    <h4 className="text-xl font-bold text-gray-900 dark:text-white mb-1">
                       {reviews[currentReview].name}
                     </h4>
-                    <p className="text-gray-600">
+                    <p className="text-gray-600 dark:text-gray-400">
                       {reviews[currentReview].role} • {reviews[currentReview].company}
                     </p>
                   </div>
@@ -158,14 +158,14 @@ const ReviewsSection = () => {
             {/* Navigation Arrows */}
             <button
               onClick={prevReview}
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-white/20 flex items-center justify-center text-gray-600 hover:text-blue-600 hover:shadow-xl transition-all duration-300 hover:scale-110"
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 dark:bg-gray-700/90 backdrop-blur-sm rounded-full shadow-lg border border-white/20 dark:border-gray-600/20 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:shadow-xl transition-all duration-300 hover:scale-110"
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
             
             <button
               onClick={nextReview}
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 backdrop-blur-sm rounded-full shadow-lg border border-white/20 flex items-center justify-center text-gray-600 hover:text-blue-600 hover:shadow-xl transition-all duration-300 hover:scale-110"
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-white/90 dark:bg-gray-700/90 backdrop-blur-sm rounded-full shadow-lg border border-white/20 dark:border-gray-600/20 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:shadow-xl transition-all duration-300 hover:scale-110"
             >
               <ChevronRight className="w-6 h-6" />
             </button>
@@ -180,7 +180,7 @@ const ReviewsSection = () => {
                 className={`w-3 h-3 rounded-full transition-all duration-300 ${
                   index === currentReview
                     ? 'bg-gradient-to-r from-blue-500 to-purple-600 w-8'
-                    : 'bg-gray-300 hover:bg-gray-400'
+                    : 'bg-gray-300 dark:bg-gray-600 hover:bg-gray-400 dark:hover:bg-gray-500'
                 }`}
               />
             ))}
@@ -192,19 +192,19 @@ const ReviewsSection = () => {
               <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
                 500+
               </div>
-              <p className="text-gray-600 font-medium">Clients satisfaits</p>
+              <p className="text-gray-600 dark:text-gray-400 font-medium">Clients satisfaits</p>
             </div>
             <div className="text-center">
               <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
                 4.9/5
               </div>
-              <p className="text-gray-600 font-medium">Note moyenne</p>
+              <p className="text-gray-600 dark:text-gray-400 font-medium">Note moyenne</p>
             </div>
             <div className="text-center">
               <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-2">
                 98%
               </div>
-              <p className="text-gray-600 font-medium">Recommandations</p>
+              <p className="text-gray-600 dark:text-gray-400 font-medium">Recommandations</p>
             </div>
           </div>
         </div>

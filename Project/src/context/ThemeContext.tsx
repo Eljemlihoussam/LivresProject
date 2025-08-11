@@ -1,5 +1,4 @@
 "use client";
-
 import type React from "react";
 import { createContext, useState, useContext, useEffect } from "react";
 
@@ -19,21 +18,28 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    // This code will only run on the client side
+    // Charger le thème depuis localStorage au montage du composant
     const savedTheme = localStorage.getItem("theme") as Theme | null;
-    const initialTheme = savedTheme || "light"; // Default to light theme
-
-    setTheme(initialTheme);
+    if (savedTheme) {
+      setTheme(savedTheme);
+    } else {
+      // Détecter la préférence système si aucune préférence n'est sauvegardée
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      setTheme(prefersDark ? "dark" : "light");
+    }
     setIsInitialized(true);
   }, []);
 
+  // Appliquer le thème et sauvegarder dans localStorage
   useEffect(() => {
     if (isInitialized) {
+      const root = document.documentElement;
       localStorage.setItem("theme", theme);
+      
       if (theme === "dark") {
-        document.documentElement.classList.add("dark");
+        root.classList.add("dark");
       } else {
-        document.documentElement.classList.remove("dark");
+        root.classList.remove("dark");
       }
     }
   }, [theme, isInitialized]);
