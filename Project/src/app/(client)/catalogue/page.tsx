@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Play, Filter, Search, Star, Clock, Loader2 } from 'lucide-react';
+import { Play, Filter, Search, Star, Clock, Loader2, ArrowRight } from 'lucide-react';
 
 interface Category {
   id: number;
@@ -10,6 +10,7 @@ interface Category {
 }
 
 interface Story {
+  id: number; 
   title: string;
   author: string;
   description: string;
@@ -17,6 +18,7 @@ interface Story {
   publication_date: string | null;
   cover_img_url: string;
   range: string;
+  story_id: number; 
 }
 
 interface Rating {
@@ -104,8 +106,6 @@ const AudiobookCollection: React.FC = () => {
       const matchesCategory = selectedCategory === 'Tous' || 
         apiData.allCategories.some(cat => 
           cat.name === selectedCategory && 
-          // Ici vous pourriez ajouter une logique pour associer les histoires aux catégories
-          // Pour l'instant, on affiche toutes les histoires
           true
         );
       
@@ -118,13 +118,16 @@ const AudiobookCollection: React.FC = () => {
     });
   }, [selectedCategory, selectedAge, searchTerm, apiData]);
 
+  // Fonction pour rediriger vers la page de détail
   const handlePlayStory = (story: Story) => {
-    console.log('Lecture de:', story.title);
-    // Ici vous pouvez ajouter la logique de navigation
-    // router.push(`/audiobooks/${story.slug}`);
+    console.log('Navigation vers la page de détail pour:', story.title, 'ID:', story.id);
+    // Redirection vers la page de détail avec l'ID de l'histoire
+    window.location.href = `/audiobook/${story.story_id}`;
+    // Si vous utilisez Next.js router, utilisez plutôt :
+    // router.push(`/audiobook-player/${story.id}`);
   };
 
-  // État de chargement
+  
   if (loading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -136,7 +139,6 @@ const AudiobookCollection: React.FC = () => {
     );
   }
 
-  // État d'erreur
   if (error) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
@@ -159,7 +161,6 @@ const AudiobookCollection: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
       <header className="bg-gradient-to-r from-blue-50 to-purple-50 py-8 px-6">
         <div className="max-w-7xl mx-auto">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">حكايات</h1>
@@ -170,7 +171,6 @@ const AudiobookCollection: React.FC = () => {
 
       <main className="max-w-7xl mx-auto px-6 py-8">
         <div className="flex gap-8">
-          {/* Sidebar Filters */}
           <aside className="w-80 flex-shrink-0">
             <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-6 sticky top-8">
               <div className="flex items-center gap-2 mb-6">
@@ -178,7 +178,6 @@ const AudiobookCollection: React.FC = () => {
                 <h2 className="text-xl font-semibold text-gray-800">المرشحات</h2>
               </div>
               
-              {/* Search */}
               <div className="mb-6">
                 <label htmlFor="search" className="block text-sm font-medium text-gray-700 mb-2">
                   البحث
@@ -196,7 +195,6 @@ const AudiobookCollection: React.FC = () => {
                 </div>
               </div>
 
-              {/* Category Filter */}
               <div className="mb-6">
                 <h3 className="block text-sm font-medium text-gray-700 mb-3">الفئة</h3>
                 <div className="space-y-2" role="group" aria-label="فلترة حسب الفئة">
@@ -217,7 +215,6 @@ const AudiobookCollection: React.FC = () => {
                 </div>
               </div>
 
-              {/* Age Filter */}
               <div className="mb-6">
                 <h3 className="block text-sm font-medium text-gray-700 mb-3">العمر</h3>
                 <div className="space-y-2" role="group" aria-label="فلترة حسب العمر">
@@ -238,7 +235,6 @@ const AudiobookCollection: React.FC = () => {
                 </div>
               </div>
 
-              {/* Results Count */}
               <div className="pt-4 border-t border-gray-200">
                 <p className="text-sm text-gray-500">
                   {filteredStories.length} قصة متوفرة
@@ -247,9 +243,7 @@ const AudiobookCollection: React.FC = () => {
             </div>
           </aside>
 
-          {/* Main Content */}
           <section className="flex-1">
-            {/* Stories Grid */}
             {filteredStories.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {filteredStories.map((story, index) => (
@@ -257,20 +251,17 @@ const AudiobookCollection: React.FC = () => {
                     key={`${story.title}-${index}`}
                     className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 group"
                   >
-                    {/* Image Container */}
                     <div className="relative h-48 overflow-hidden">
                       <img 
                         src={story.cover_img_url} 
                         alt={`غلاف ${story.title}`}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                         onError={(e) => {
-                          // Image de fallback en cas d'erreur
                           (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop';
                         }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                       
-                      {/* Play Button Overlay */}
                       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                         <button 
                           onClick={() => handlePlayStory(story)}
@@ -281,7 +272,6 @@ const AudiobookCollection: React.FC = () => {
                         </button>
                       </div>
 
-                      {/* Age Badge */}
                       <div className="absolute top-3 left-3">
                         <span className="bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full text-xs font-medium text-gray-700">
                           {story.range} سنة
@@ -289,13 +279,11 @@ const AudiobookCollection: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Content */}
                     <div className="p-5">
                       <h3 className="font-bold text-lg text-gray-800 mb-1 line-clamp-1" dir="rtl">{story.title}</h3>
                       <p className="text-gray-600 text-sm mb-3">{story.author}</p>
                       <p className="text-gray-500 text-sm mb-4 line-clamp-2" dir="rtl">{story.description}</p>
                       
-                      {/* Meta Information */}
                       <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
                         <div className="flex items-center gap-1">
                           <Clock className="w-4 h-4" />
@@ -307,20 +295,19 @@ const AudiobookCollection: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Action Button */}
                       <button 
                         onClick={() => handlePlayStory(story)}
                         className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2.5 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                       >
                         <Play className="w-4 h-4" />
                         استمع الآن
+                        <ArrowRight className="w-4 h-4" />
                       </button>
                     </div>
                   </article>
                 ))}
               </div>
             ) : (
-              /* Empty State */
               <div className="text-center py-12">
                 <div className="text-gray-400 mb-4">
                   <Search className="w-16 h-16 mx-auto" />

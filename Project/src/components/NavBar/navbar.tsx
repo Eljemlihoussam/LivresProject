@@ -1,16 +1,44 @@
 "use client"
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ChevronDown, Search, User, Settings, LogOut, BookOpen, Heart } from 'lucide-react';
+import { ChevronDown, Search, User, Settings, LogOut, BookOpen, Heart, Moon, Sun } from 'lucide-react';
 
 const Navbar = () => {
   const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isDarkMode, setIsDarkMode] = useState(false);
+
+  // Charger le thème depuis sessionStorage au montage du composant
+  useEffect(() => {
+    const savedTheme = sessionStorage.getItem('theme');
+    if (savedTheme) {
+      setIsDarkMode(savedTheme === 'dark');
+    } else {
+      // Détecter la préférence système si aucune préférence n'est sauvegardée
+      setIsDarkMode(window.matchMedia('(prefers-color-scheme: dark)').matches);
+    }
+  }, []);
+
+  // Appliquer le thème et sauvegarder dans sessionStorage
+  useEffect(() => {
+    const root = document.documentElement;
+    if (isDarkMode) {
+      root.classList.add('dark');
+      sessionStorage.setItem('theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      sessionStorage.setItem('theme', 'light');
+    }
+  }, [isDarkMode]);
+
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+  };
 
   return (
-    <nav className="bg-white border-b border-gray-200 px-4 py-4">
+    <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 px-4 py-4 transition-colors duration-200">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Section gauche */}
         <div className="flex items-center space-x-6">
@@ -18,14 +46,14 @@ const Navbar = () => {
           <div className="relative">
             <button 
               onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className="p-2 hover:bg-blue-200 rounded-full transition-all duration-300 group"
+              className="p-2 hover:bg-blue-200 dark:hover:bg-blue-800 rounded-full transition-all duration-300 group"
             >
-              <User className="w-5 h-5 text-gray-600 group-hover:text-blue-600" />
+              <User className="w-5 h-5 text-gray-600 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
             </button>
             
             {isProfileOpen && (
-              <div className="absolute top-full left-0 mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-2xl z-20 overflow-hidden">
-                <div className="bg-blue-500 p-4 text-white">
+              <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-xl shadow-2xl z-20 overflow-hidden">
+                <div className="bg-blue-500 dark:bg-blue-600 p-4 text-white">
                   <div className="flex items-center space-x-3">
                     <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
                       <User className="w-5 h-5" />
@@ -37,20 +65,20 @@ const Navbar = () => {
                   </div>
                 </div>
                 <div className="py-2">
-                  <button className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200">
+                  <button className="flex items-center w-full px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 transition-all duration-200">
                     <BookOpen className="w-4 h-4 mr-3" />
                     Mes Livres
                   </button>
-                  <button className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200">
+                  <button className="flex items-center w-full px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 transition-all duration-200">
                     <Heart className="w-4 h-4 mr-3" />
                     Favoris
                   </button>
-                  <button className="flex items-center w-full px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-all duration-200">
+                  <button className="flex items-center w-full px-4 py-3 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 transition-all duration-200">
                     <Settings className="w-4 h-4 mr-3" />
                     Paramètres
                   </button>
-                  <hr className="my-2" />
-                  <button className="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-all duration-200">
+                  <hr className="my-2 border-gray-200 dark:border-gray-600" />
+                  <button className="flex items-center w-full px-4 py-3 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200">
                     <LogOut className="w-4 h-4 mr-3" />
                     Se déconnecter
                   </button>
@@ -70,7 +98,7 @@ const Navbar = () => {
             
             {/* TikTok */}
             <button className="hover:opacity-70 transition-opacity">
-              <svg className="w-6 h-6 text-gray-800" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 text-gray-800 dark:text-gray-200" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
               </svg>
             </button>
@@ -79,10 +107,10 @@ const Navbar = () => {
 
         {/* Section centrale */}
         <div className="flex items-center space-x-8">
-          <Link href="/videos" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+          <Link href="/videos" className="text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors">
             Videos
           </Link>
-          <Link href="/histoires" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+          <Link href="/histoires" className="text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors">
             Histoires
           </Link>
           
@@ -90,7 +118,7 @@ const Navbar = () => {
           <Link href="/" className="mx-8">
             <div className="flex items-center">
               <img 
-                src="/images/bar/livre_site.png" 
+                src="/images/bar/hikaya.png" 
                 alt="LIVRENF Logo" 
                 className="w-10 h-10 mr-2"
               />
@@ -98,7 +126,7 @@ const Navbar = () => {
             </div>
           </Link>
           
-          <Link href="/livres" className="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+          <Link href="/livres" className="text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors">
             Livres
           </Link>
           
@@ -106,25 +134,25 @@ const Navbar = () => {
           <div className="relative">
             <button
               onClick={() => setIsLanguageOpen(!isLanguageOpen)}
-              className="flex items-center space-x-1 text-gray-700 hover:text-blue-600 font-medium transition-colors"
+              className="flex items-center space-x-1 text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors"
             >
               <span>Langues</span>
               <ChevronDown className="w-4 h-4" />
             </button>
             
             {isLanguageOpen && (
-              <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-10">
+              <div className="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-10">
                 <div className="py-1">
-                  <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
                     Français
                   </button>
-                  <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
                     English
                   </button>
-                  <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
                     العربية
                   </button>
-                  <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                  <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
                     Español
                   </button>
                 </div>
@@ -134,18 +162,32 @@ const Navbar = () => {
         </div>
 
         {/* Section droite */}
-        <div className="flex items-center">
+        <div className="flex items-center space-x-2">
+          {/* Bouton Dark/Light Mode */}
+          <button 
+            onClick={toggleTheme}
+            className="p-2 hover:bg-blue-100 dark:hover:bg-blue-800 rounded-full transition-all duration-300 group"
+            aria-label="Basculer le thème"
+          >
+            {isDarkMode ? (
+              <Sun className="w-5 h-5 text-yellow-500 group-hover:text-yellow-400 transition-colors" />
+            ) : (
+              <Moon className="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-colors" />
+            )}
+          </button>
+
+          {/* Bouton de recherche */}
           <div className="relative">
             <button 
               onClick={() => setIsSearchOpen(!isSearchOpen)}
-              className="p-2 hover:bg-blue-100 rounded-full transition-all duration-300 group"
+              className="p-2 hover:bg-blue-100 dark:hover:bg-blue-800 rounded-full transition-all duration-300 group"
             >
-              <Search className="w-5 h-5 text-gray-600 group-hover:text-blue-600" />
+              <Search className="w-5 h-5 text-gray-600 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
             </button>
             
             {isSearchOpen && (
-              <div className="absolute top-full right-0 mt-2 w-80 bg-white border border-gray-300 rounded-xl shadow-2xl z-20 overflow-hidden">
-                <div className="bg-blue-500 p-4">
+              <div className="absolute top-full right-0 mt-2 w-80 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl shadow-2xl z-20 overflow-hidden">
+                <div className="bg-blue-500 dark:bg-blue-600 p-4">
                   <h3 className="text-white font-semibold mb-3">Rechercher</h3>
                   <div className="relative">
                     <input
@@ -153,19 +195,19 @@ const Navbar = () => {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Rechercher des livres, vidéos, histoires..."
-                      className="w-full px-4 py-3 pl-10 rounded-lg border-0 focus:ring-2 focus:ring-white/50 focus:outline-none text-gray-700 placeholder-white-400"
+                      className="w-full px-4 py-3 pl-10 rounded-lg border-0 focus:ring-2 focus:ring-white/50 focus:outline-none text-gray-700 dark:text-gray-200 dark:bg-gray-700 placeholder-gray-400 dark:placeholder-gray-300"
                     />
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-600" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-600 dark:text-gray-400" />
                   </div>
                 </div>
                 <div className="p-4">
                   <div className="mb-3">
-                    <h4 className="text-sm font-semibold text-gray-700 mb-2">Recherches populaires</h4>
+                    <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Recherches populaires</h4>
                     <div className="flex flex-wrap gap-2">
                       {['Romans', 'Science-fiction', 'Histoire', 'Philosophie'].map((tag) => (
                         <button
                           key={tag}
-                          className="px-3 py-1 bg-gray-100 hover:bg-blue-100 hover:text-blue-700 rounded-full text-sm text-gray-600 transition-all duration-200"
+                          className="px-3 py-1 bg-gray-100 dark:bg-gray-700 hover:bg-blue-100 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 rounded-full text-sm text-gray-600 dark:text-gray-300 transition-all duration-200"
                         >
                           {tag}
                         </button>
@@ -174,14 +216,14 @@ const Navbar = () => {
                   </div>
                   {searchQuery && (
                     <div>
-                      <h4 className="text-sm font-semibold text-gray-700 mb-2">Suggestions</h4>
+                      <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-2">Suggestions</h4>
                       <div className="space-y-1">
                         {['Le Petit Prince', 'Harry Potter', '1984'].filter(item => 
                           item.toLowerCase().includes(searchQuery.toLowerCase())
                         ).map((suggestion) => (
                           <button
                             key={suggestion}
-                            className="block w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 rounded-lg transition-all duration-200"
+                            className="block w-full text-left px-3 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:text-blue-700 dark:hover:text-blue-400 rounded-lg transition-all duration-200"
                           >
                             {suggestion}
                           </button>
@@ -194,16 +236,18 @@ const Navbar = () => {
             )}
           </div>
         </div>
-            {(isLanguageOpen || isProfileOpen || isSearchOpen) && (
-              <div 
-                className="fixed inset-0 z-10" 
-                onClick={() => {
-                  setIsLanguageOpen(false);
-                  setIsProfileOpen(false);
-                  setIsSearchOpen(false);
-                }}
-              />
-            )}
+
+        {/* Overlay pour fermer les dropdowns */}
+        {(isLanguageOpen || isProfileOpen || isSearchOpen) && (
+          <div 
+            className="fixed inset-0 z-10" 
+            onClick={() => {
+              setIsLanguageOpen(false);
+              setIsProfileOpen(false);
+              setIsSearchOpen(false);
+            }}
+          />
+        )}
       </div>
     </nav>
   );

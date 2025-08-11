@@ -1,4 +1,4 @@
-"use client"; 
+"use client";
 import { BookOpen, Star, Users, Award, Play } from "lucide-react";
 import { useState, useEffect } from "react";
 
@@ -56,13 +56,13 @@ export default function HeaderSection() {
     }, []);
 
     return (
-        <div className="w-full min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex relative overflow-hidden">
+        <div className="w-full min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex relative overflow-hidden dark:bg-gradient-to-br dark:from-slate-900 dark:to-blue-950">
             {/* Particules flottantes d'arrière-plan */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 {[...Array(20)].map((_, i) => (
                     <div
                         key={i}
-                        className="absolute w-2 h-2 bg-blue-200 rounded-full opacity-30 animate-float"
+                        className="absolute w-2 h-2 bg-blue-200 rounded-full opacity-30 animate-float dark:bg-blue-700 dark:opacity-20"
                         style={{
                             left: `${Math.random() * 100}%`,
                             top: `${Math.random() * 100}%`,
@@ -77,18 +77,18 @@ export default function HeaderSection() {
             <div className="w-1/2 p-12 flex flex-col justify-center relative z-10">
                 <div className="max-w-lg">
                     {/* Main Heading avec animation */}
-                    <h1 className="text-5xl font-bold text-slate-800 leading-tight mb-6 animate-slide-in-left">
+                    <h1 className="text-5xl font-bold text-slate-800 leading-tight mb-6 animate-slide-in-left dark:text-slate-100">
                         Réveillez la 
-                        <span className="text-blue-600 block animate-slide-in-left" style={{animationDelay: '0.2s'}}>
+                        <span className="text-blue-600 block animate-slide-in-left dark:text-blue-400" style={{animationDelay: '0.2s'}}>
                             beauté et l'éclat
                         </span>
-                        <span className="text-blue-600 animate-slide-in-left" style={{animationDelay: '0.4s'}}>
+                        <span className="text-blue-600 animate-slide-in-left dark:text-blue-400" style={{animationDelay: '0.4s'}}>
                             de vos connaissances
                         </span>
                     </h1>
                     
                     {/* Subtitle avec animation */}
-                    <p className="text-gray-600 text-lg mb-8 leading-relaxed animate-fade-in-up" style={{animationDelay: '0.6s'}}>
+                    <p className="text-gray-600 text-lg mb-8 leading-relaxed animate-fade-in-up dark:text-gray-300" style={{animationDelay: '0.6s'}}>
                         Nous vous proposons diverses méthodes de révision de la tête 
                         aux pieds en utilisant les meilleurs outils, une technologie 
                         avancée et un prix abordable
@@ -96,12 +96,12 @@ export default function HeaderSection() {
                     
                     {/* Buttons avec animation */}
                     <div className="flex items-center gap-6 mb-12 animate-fade-in-up" style={{animationDelay: '0.8s'}}>
-                        <button className="bg-slate-800 text-white px-8 py-3 rounded-full font-medium hover:bg-blue-600 hover:scale-105 transform transition-all duration-300 shadow-lg hover:shadow-xl">
+                        <button className="bg-slate-800 text-white px-8 py-3 rounded-full font-medium hover:bg-blue-600 hover:scale-105 transform transition-all duration-300 shadow-lg hover:shadow-xl dark:bg-blue-700 dark:hover:bg-blue-600">
                             Réserver Maintenant
                         </button>
-                        <button className="flex items-center gap-3 text-gray-700 hover:text-blue-600 transition-all duration-300 group">
-                            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all duration-300">
-                                <Play className="w-5 h-5 text-blue-600 ml-1" />
+                        <button className="flex items-center gap-3 text-gray-700 hover:text-blue-600 transition-all duration-300 group dark:text-gray-300 dark:hover:text-blue-400">
+                            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-md group-hover:shadow-lg group-hover:scale-110 transition-all duration-300 dark:bg-slate-800">
+                                <Play className="w-5 h-5 text-blue-600 ml-1 dark:text-blue-400" />
                             </div>
                             <span className="font-medium">Regarder Vidéo</span>
                         </button>
@@ -125,11 +125,11 @@ export default function HeaderSection() {
                                 className="text-center transform hover:scale-110 transition-all duration-300 cursor-pointer"
                                 style={{animationDelay: stat.delay}}
                             >
-                                <div className="w-16 h-16 bg-gradient-to-br from-orange-200 to-orange-300 rounded-full flex items-center justify-center mb-3 mx-auto shadow-lg hover:shadow-xl transition-shadow duration-300">
-                                    <stat.icon className="w-8 h-8 text-blue-900" />
+                                <div className="w-16 h-16 bg-gradient-to-br from-orange-200 to-orange-300 rounded-full flex items-center justify-center mb-3 mx-auto shadow-lg hover:shadow-xl transition-shadow duration-300 dark:from-orange-700 dark:to-orange-800">
+                                    <stat.icon className="w-8 h-8 text-blue-900 dark:text-orange-200" />
                                 </div>
-                                <div className="text-2xl font-bold text-slate-800">{stat.number}</div>
-                                <div className="text-gray-500 text-sm">{stat.label}</div>
+                                <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">{stat.number}</div>
+                                <div className="text-gray-500 text-sm dark:text-gray-400">{stat.label}</div>
                             </div>
                         ))}
                     </div>
@@ -145,12 +145,12 @@ export default function HeaderSection() {
                         visibleElements.testimonial1 
                             ? 'translate-x-0 opacity-100 rotate-0' 
                             : 'translate-x-8 opacity-0 rotate-3'
-                    } hover:scale-105 hover:shadow-2xl`}
+                    } hover:scale-105 hover:shadow-2xl dark:bg-slate-800 dark:shadow-2xl`}
                     data-animate="testimonial1"
                     data-delay="200"
                 >
-                    <div className="text-3xl font-bold text-blue-600 mb-2">"</div>
-                    <p className="text-sm text-gray-700 mb-4 leading-relaxed">
+                    <div className="text-3xl font-bold text-blue-600 mb-2 dark:text-blue-400">"</div>
+                    <p className="text-sm text-gray-700 mb-4 leading-relaxed dark:text-gray-300">
                         J'ai un programme régulier pour réviser avec VotreEducation, ils m'offrent 
                         le meilleur service et méthode pour maintenir la beauté et la santé de 
                         mes connaissances
@@ -159,7 +159,7 @@ export default function HeaderSection() {
                         <div className="w-8 h-8 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
                             <span className="text-white text-xs font-bold">S</span>
                         </div>
-                        <p className="text-sm font-semibold text-blue-600">Sophie Princeton</p>
+                        <p className="text-sm font-semibold text-blue-600 dark:text-blue-400">Sophie Princeton</p>
                     </div>
                 </div>
                 
@@ -168,13 +168,13 @@ export default function HeaderSection() {
                     className={`absolute bottom-12 left-24 bg-white rounded-xl p-6 shadow-xl max-w-xs transition-all duration-1000 transform ${
                         visibleElements.testimonial2 
                             ? 'translate-x-0 opacity-100 rotate-0' 
-                            : 'translate-x-(-8) opacity-0 rotate-(-3)'
-                    } hover:scale-105 hover:shadow-2xl`}
+                            : '-translate-x-8 opacity-0 -rotate-3'
+                    } hover:scale-105 hover:shadow-2xl dark:bg-slate-800 dark:shadow-2xl`}
                     data-animate="testimonial2"
                     data-delay="600"
                 >
-                    <div className="text-3xl font-bold text-blue-600 mb-2">"</div>
-                    <p className="text-sm text-gray-700 mb-4 leading-relaxed">
+                    <div className="text-3xl font-bold text-blue-600 mb-2 dark:text-blue-400">"</div>
+                    <p className="text-sm text-gray-700 mb-4 leading-relaxed dark:text-gray-300">
                         Depuis quelques années, j'avais du mal à trouver le bon endroit 
                         pour réviser mes sujets complexes, jusqu'à ce que je trouve 
                         VotreEducation pour enrichir mes connaissances
@@ -183,7 +183,7 @@ export default function HeaderSection() {
                         <div className="w-8 h-8 bg-gradient-to-r from-pink-400 to-pink-600 rounded-full flex items-center justify-center">
                             <span className="text-white text-xs font-bold">T</span>
                         </div>
-                        <p className="text-sm font-semibold text-blue-600">Tamara Jules</p>
+                        <p className="text-sm font-semibold text-blue-600 dark:text-blue-400">Tamara Jules</p>
                     </div>
                 </div>
                 
@@ -195,15 +195,15 @@ export default function HeaderSection() {
                     data-animate="decorative"
                     data-delay="1000"
                 >
-                    <div className="absolute top-16 left-16 w-6 h-6 bg-gradient-to-r from-orange-300 to-orange-400 rounded-full animate-pulse"></div>
-                    <div className="absolute bottom-20 right-20 w-8 h-8 bg-gradient-to-r from-blue-300 to-blue-400 rounded-full animate-bounce"></div>
-                    <div className="absolute top-1/2 left-4 w-4 h-4 bg-gradient-to-r from-pink-300 to-pink-400 rounded-full animate-ping"></div>
+                    <div className="absolute top-16 left-16 w-6 h-6 bg-gradient-to-r from-orange-300 to-orange-400 rounded-full animate-pulse dark:from-orange-600 dark:to-orange-700"></div>
+                    <div className="absolute bottom-20 right-20 w-8 h-8 bg-gradient-to-r from-blue-300 to-blue-400 rounded-full animate-bounce dark:from-blue-600 dark:to-blue-700"></div>
+                    <div className="absolute top-1/2 left-4 w-4 h-4 bg-gradient-to-r from-pink-300 to-pink-400 rounded-full animate-ping dark:from-pink-600 dark:to-pink-700"></div>
                 </div>
             </div>
 
             {/* Image centrale avec transition */}
             <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-0">
-                <div className="relative w-96 h-96 rounded-3xl overflow-hidden  shadow-2xl ">
+                <div className="relative w-96 h-96 rounded-3xl overflow-hidden shadow-2xl dark:shadow-blue-900/30">
                     {images.map((image, index) => (
                         <img 
                             key={index}
@@ -218,7 +218,7 @@ export default function HeaderSection() {
                     ))}
                     
                     {/* Overlay avec gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-blue-900/20 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-blue-900/20 to-transparent dark:from-blue-900/40"></div>
                     
                     {/* Indicateurs de navigation */}
                     <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex gap-2">

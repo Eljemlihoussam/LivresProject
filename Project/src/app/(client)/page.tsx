@@ -33,7 +33,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div>
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white">
       <HeaderSection />
       
       <div 

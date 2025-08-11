@@ -15,7 +15,7 @@ export async function GET() {
 
     // 3. Jointure pour les infos détaillées des histoires/favorites
     const categoriesInfo = await prisma.$queryRaw`
-      SELECT title, author, description, audio_duration, publication_date, cover_img_url, range 
+      SELECT story_id ,title, author, description, audio_duration, publication_date, cover_img_url, range 
       FROM public."Favorite"
       INNER JOIN public."Story" ON public."Favorite".story_id = public."Story".id 
       INNER JOIN public."AgeRange" ON public."Story".Age_range_id = public."AgeRange".id
