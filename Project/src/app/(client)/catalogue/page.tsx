@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Play, Filter, Search, Star, Clock, Loader2, ArrowRight } from 'lucide-react';
-import { useTheme } from '../../../context/ThemeContext'; // Ajustez le chemin selon votre structure
+import { Play, Filter, Search, Star, Clock, Loader2, ArrowRight, Video } from 'lucide-react';
+import { useTheme } from '../../../context/ThemeContext'; 
 
 interface Category {
   id: number;
@@ -132,10 +132,16 @@ const AudiobookCollection: React.FC = () => {
     });
   }, [selectedCategory, selectedAge, searchTerm, apiData]);
 
-  // Fonction pour rediriger vers la page de détail
+  // Fonction pour rediriger vers la page de détail audiobook
   const handlePlayStory = (story: Story) => {
     console.log('Navigation vers la page de détail pour:', story.title, 'ID:', story.id);
     window.location.href = `/audiobook/${story.story_id}`;
+  };
+
+  // Fonction pour rediriger vers la page de vidéo
+  const handleWatchVideo = (story: Story) => {
+    console.log('Navigation vers la page vidéo pour:', story.title, 'ID:', story.story_id);
+    window.location.href = `/videobook/${story.story_id}`;
   };
 
   if (loading) {
@@ -337,6 +343,14 @@ const AudiobookCollection: React.FC = () => {
                       >
                         <Play className="w-4 h-4" />
                         استمع الآن
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => handleWatchVideo(story)}
+                        className="mt-2 w-full bg-gradient-to-r from-red-700 to-pink-900 text-white py-2.5 rounded-lg font-medium hover:from-red-600 hover:to-pink-900 transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                      >
+                        <Video className="w-4 h-4" />
+                        شاهد الآن 
                         <ArrowRight className="w-4 h-4" />
                       </button>
                     </div>

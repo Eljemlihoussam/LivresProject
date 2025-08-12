@@ -1,6 +1,8 @@
 "use client"
 import ThemeTogglerTwo from "../../../components/common/ThemeTogglerTwo";
 import { ThemeProvider } from "../../../context/ThemeContext";
+import { ChevronLeftIcon } from "../../../icons";
+import Link from "next/link";
 import React from "react";
 
 export default function AuthLayout({
@@ -10,6 +12,7 @@ export default function AuthLayout({
 }) {
   return (
     <div className="relative p-6 bg-white z-1 dark:bg-gray-900 sm:p-0">
+      
       <ThemeProvider>
         <div className="relative flex lg:flex-row w-full h-screen justify-center flex-col dark:bg-gray-900 sm:p-0 overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800">
           
@@ -119,13 +122,24 @@ export default function AuthLayout({
             </div>
           </div>
 
+          {/* Lien de retour fixe en haut */}
+          <div className="absolute top-10 left-1/4 transform -translate-x-1/2 z-20">
+            <Link
+              href="/"
+              className="inline-flex items-center text-sm text-blue-700 transition-all duration-200 hover:text-blue-800 dark:text-gray-400 dark:hover:text-gray-300 hover:translate-x-1 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm px-4 py-2 rounded-lg shadow-sm border border-gray-200/50 dark:border-gray-700/50"
+            >
+              <ChevronLeftIcon />
+              Retour au dashboard
+            </Link>
+          </div>
+
           {/* Contenu principal */}
           <div className="flex-1 flex items-center justify-center p-8 relative z-10">
             <div className="w-full max-w-md">
               {children}
             </div>
           </div>
-
+            
           {/* Toggle thème */}
           <div className="fixed bottom-6 right-6 z-50">
             <ThemeTogglerTwo />

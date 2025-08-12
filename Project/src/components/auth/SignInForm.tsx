@@ -12,18 +12,10 @@ export default function SignInForm() {
   const [isChecked, setIsChecked] = useState(false);
   
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+    <div className="min-h-screen  dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Header avec bouton retour */}
-        <div className="mb-8">
-          <Link
-            href="/"
-            className="inline-flex items-center text-sm text-gray-500 transition-all duration-200 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 hover:translate-x-1"
-          >
-            <ChevronLeftIcon />
-            Retour au dashboard
-          </Link>
-        </div>
+        
+        
 
         {/* Card principale */}
         <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 p-8">
