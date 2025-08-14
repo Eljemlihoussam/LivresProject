@@ -8,35 +8,45 @@ import {
   SkipForward, 
   Volume2, 
   VolumeX,
-  BookOpen, 
   ChevronLeft,
-  ChevronRight,
-  Home,
-  Loader2,
-  AlertCircle,
-  MoreVertical,
-  Download,
-  Share2,
   Heart,
   Rewind,
   FastForward,
-  Shuffle,
-  Repeat,
-  List,
-  Settings,
-  Moon,
-  Sun,
-  Maximize,
-  Minimize,
-  Clock,
-  User,
-  Headphones,
-  Waves,
-  Video,
-  Monitor,
+  Share2,
   Maximize2,
-  Minimize2
+  Minimize2,
+  Settings,
+  List,
+  AlertCircle,
+  Loader2,
+  ChevronDown,
+  ChevronUp,
+  Clock,
+  BookOpen,
+  Video,
+  Download
 } from 'lucide-react';
+
+// Types pour les segments de contenu vidéo
+interface ContentSegment {
+  id: number;
+  startTime: number;
+  endTime: number;
+  text: string;
+  type: 'paragraph' | 'dialogue' | 'description' | 'title';
+}
+
+interface Chapter {
+  id: number;
+  story_id: number;
+  title: string;
+  content: string;
+  audio_url: string; // Sera utilisé comme video_url
+  video_url?: string; // URL vidéo si différente
+  image_url?: string;
+  duration?: number;
+  contentSegments?: ContentSegment[];
+}
 
 interface Story {
   id: number;
@@ -44,257 +54,19 @@ interface Story {
   author: string;
   description: string;
   cover_img_url: string;
-  range?: string;
 }
 
-interface Chapter {
-  id: number;
-  story_id: number;
-  title: string;
-  video_url: string;
-  thumbnail_url?: string;
-  duration?: number;
-  createdAt?: string;
-  updatedAt?: string;
+interface APIResponse {
+  success: boolean;
+  story: Story;
+  totalChapters: number;
+  chapters: Chapter[];
 }
 
-const RealisticAnimal = ({ type, index }: { type: 'elephant' | 'monkey' | 'bird' | 'rabbit' | 'fox' | 'deer', index: number }) => {
-  const [currentPosition, setCurrentPosition] = useState({ x: 0, y: 0 });
-  const [direction, setDirection] = useState(Math.random() * 360);
-  
-  const [animalPath] = useState(() => {
-    const path = [];
-    for (let i = 0; i < 8; i++) {
-      path.push({
-        x: Math.random() * 85 + 5,
-        y: Math.random() * 75 + 10,
-      });
-    }
-    return path;
-  });
-
-  const [pathIndex, setPathIndex] = useState(Math.floor(Math.random() * animalPath.length));
-
-  useEffect(() => {
-    const moveAnimal = () => {
-      setPathIndex(prev => (prev + 1) % animalPath.length);
-      setDirection(prev => prev + (Math.random() - 0.5) * 60);
-    };
-
-    const timeout = setTimeout(() => {
-      const interval = setInterval(moveAnimal, 2500 + (index * 300) + Math.random() * 1000);
-      return () => clearInterval(interval);
-    }, index * 800 + Math.random() * 1000);
-
-    return () => clearTimeout(timeout);
-  }, [index, animalPath.length]);
-
-  useEffect(() => {
-    setCurrentPosition(animalPath[pathIndex]);
-  }, [pathIndex, animalPath]);
-
-  const getRealisticAnimalSVG = () => {
-    switch (type) {
-      case 'elephant':
-        return (
-          <svg viewBox="0 0 160 140" className="w-full h-full drop-shadow-2xl">
-            <defs>
-              <radialGradient id={`elephant-gradient-${index}`} cx="50%" cy="40%" r="60%">
-                <stop offset="0%" stopColor="rgba(156, 163, 175, 0.9)" />
-                <stop offset="70%" stopColor="rgba(107, 114, 128, 0.8)" />
-                <stop offset="100%" stopColor="rgba(75, 85, 99, 0.7)" />
-              </radialGradient>
-            </defs>
-            <ellipse cx="80" cy="90" rx="45" ry="30" fill={`url(#elephant-gradient-${index})`} />
-            <ellipse cx="80" cy="60" rx="35" ry="28" fill="rgba(156, 163, 175, 0.9)" />
-            <path d="M 60 75 Q 45 85 40 100 Q 35 115 45 125 Q 50 130 55 125" 
-                  stroke="rgba(107, 114, 128, 0.9)" 
-                  strokeWidth="8" 
-                  fill="none" 
-                  strokeLinecap="round" />
-            <ellipse cx="55" cy="55" rx="18" ry="25" fill="rgba(139, 144, 161, 0.8)" transform="rotate(-20 55 55)" />
-            <ellipse cx="105" cy="55" rx="18" ry="25" fill="rgba(139, 144, 161, 0.8)" transform="rotate(20 105 55)" />
-            <circle cx="70" cy="52" r="4" fill="rgba(0, 0, 0, 0.8)" />
-            <circle cx="90" cy="52" r="4" fill="rgba(0, 0, 0, 0.8)" />
-            <ellipse cx="55" cy="115" rx="8" ry="15" fill="rgba(107, 114, 128, 0.9)" />
-            <ellipse cx="75" cy="115" rx="8" ry="15" fill="rgba(107, 114, 128, 0.9)" />
-            <ellipse cx="85" cy="115" rx="8" ry="15" fill="rgba(107, 114, 128, 0.9)" />
-            <ellipse cx="105" cy="115" rx="8" ry="15" fill="rgba(107, 114, 128, 0.9)" />
-          </svg>
-        );
-        
-      case 'monkey':
-        return (
-          <svg viewBox="0 0 120 130" className="w-full h-full drop-shadow-2xl">
-            <defs>
-              <radialGradient id={`monkey-gradient-${index}`} cx="50%" cy="40%" r="60%">
-                <stop offset="0%" stopColor="rgba(180, 83, 9, 0.9)" />
-                <stop offset="70%" stopColor="rgba(146, 64, 14, 0.8)" />
-                <stop offset="100%" stopColor="rgba(120, 53, 15, 0.7)" />
-              </radialGradient>
-            </defs>
-            <ellipse cx="60" cy="85" rx="25" ry="30" fill={`url(#monkey-gradient-${index})`} />
-            <ellipse cx="35" cy="75" rx="8" ry="25" fill="rgba(180, 83, 9, 0.8)" transform="rotate(-30 35 75)" />
-            <ellipse cx="85" cy="75" rx="8" ry="25" fill="rgba(180, 83, 9, 0.8)" transform="rotate(30 85 75)" />
-            <circle cx="60" cy="45" r="22" fill={`url(#monkey-gradient-${index})`} />
-            <ellipse cx="60" cy="55" rx="12" ry="8" fill="rgba(222, 184, 135, 0.9)" />
-            <circle cx="42" cy="38" r="8" fill="rgba(146, 64, 14, 0.8)" />
-            <circle cx="78" cy="38" r="8" fill="rgba(146, 64, 14, 0.8)" />
-            <circle cx="52" cy="42" r="4" fill="rgba(255, 255, 255, 0.9)" />
-            <circle cx="68" cy="42" r="4" fill="rgba(255, 255, 255, 0.9)" />
-            <circle cx="52" cy="42" r="2" fill="rgba(0, 0, 0, 0.9)" />
-            <circle cx="68" cy="42" r="2" fill="rgba(0, 0, 0, 0.9)" />
-            <path d="M 85 90 Q 100 95 110 85 Q 115 75 105 65" 
-                  stroke="rgba(180, 83, 9, 0.8)" 
-                  strokeWidth="6" 
-                  fill="none" 
-                  strokeLinecap="round" />
-          </svg>
-        );
-        
-      case 'bird':
-        return (
-          <svg viewBox="0 0 100 80" className="w-full h-full drop-shadow-2xl">
-            <ellipse cx="50" cy="50" rx="20" ry="15" fill="rgba(59, 130, 246, 0.9)" />
-            <circle cx="30" cy="40" r="12" fill="rgba(59, 130, 246, 0.9)" />
-            <polygon points="15,40 25,37 25,43" fill="rgba(251, 146, 60, 0.9)" />
-            <circle cx="26" cy="37" r="3" fill="rgba(255, 255, 255, 0.9)" />
-            <circle cx="26" cy="37" r="2" fill="rgba(0, 0, 0, 0.9)" />
-            <ellipse cx="45" cy="45" rx="15" ry="8" fill="rgba(34, 197, 94, 0.8)" transform="rotate(-20 45 45)">
-              <animateTransform 
-                attributeName="transform"
-                attributeType="XML"
-                type="rotate"
-                values="-20 45 45;-5 45 45;-20 45 45"
-                dur="0.8s"
-                repeatCount="indefinite"
-              />
-            </ellipse>
-            <ellipse cx="55" cy="45" rx="15" ry="8" fill="rgba(34, 197, 94, 0.8)" transform="rotate(20 55 45)">
-              <animateTransform 
-                attributeName="transform"
-                attributeType="XML"
-                type="rotate"
-                values="20 55 45;5 55 45;20 55 45"
-                dur="0.8s"
-                repeatCount="indefinite"
-              />
-            </ellipse>
-            <ellipse cx="70" cy="55" rx="12" ry="6" fill="rgba(16, 185, 129, 0.8)" />
-            <line x1="45" y1="62" x2="45" y2="70" stroke="rgba(251, 146, 60, 0.9)" strokeWidth="2" />
-            <line x1="55" y1="62" x2="55" y2="70" stroke="rgba(251, 146, 60, 0.9)" strokeWidth="2" />
-          </svg>
-        );
-        
-      case 'rabbit':
-        return (
-          <svg viewBox="0 0 100 120" className="w-full h-full drop-shadow-2xl">
-            <ellipse cx="50" cy="75" rx="20" ry="25" fill="rgba(255, 255, 255, 0.95)" />
-            <circle cx="50" cy="45" r="18" fill="rgba(255, 255, 255, 0.95)" />
-            <ellipse cx="42" cy="25" rx="4" ry="15" fill="rgba(255, 255, 255, 0.9)" />
-            <ellipse cx="58" cy="25" rx="4" ry="15" fill="rgba(255, 255, 255, 0.9)" />
-            <ellipse cx="42" cy="25" rx="2" ry="12" fill="rgba(255, 192, 203, 0.7)" />
-            <ellipse cx="58" cy="25" rx="2" ry="12" fill="rgba(255, 192, 203, 0.7)" />
-            <circle cx="45" cy="42" r="3" fill="rgba(0, 0, 0, 0.8)" />
-            <circle cx="55" cy="42" r="3" fill="rgba(0, 0, 0, 0.8)" />
-            <polygon points="48,48 52,48 50,50" fill="rgba(255, 192, 203, 0.8)" />
-            <circle cx="70" cy="70" r="6" fill="rgba(255, 255, 255, 0.9)" />
-          </svg>
-        );
-        
-      case 'fox':
-        return (
-          <svg viewBox="0 0 130 100" className="w-full h-full drop-shadow-2xl">
-            <ellipse cx="65" cy="70" rx="30" ry="18" fill="rgba(251, 146, 60, 0.9)" />
-            <ellipse cx="65" cy="45" rx="20" ry="18" fill="rgba(251, 146, 60, 0.9)" />
-            <ellipse cx="65" cy="52" rx="8" ry="6" fill="rgba(255, 255, 255, 0.9)" />
-            <polygon points="50,32 55,20 62,32" fill="rgba(251, 146, 60, 0.9)" />
-            <polygon points="68,32 75,20 80,32" fill="rgba(251, 146, 60, 0.9)" />
-            <circle cx="58" cy="42" r="3" fill="rgba(255, 255, 255, 0.9)" />
-            <circle cx="72" cy="42" r="3" fill="rgba(255, 255, 255, 0.9)" />
-            <ellipse cx="100" cy="75" rx="20" ry="10" fill="rgba(251, 146, 60, 0.8)" />
-            <ellipse cx="105" cy="70" rx="15" ry="8" fill="rgba(255, 255, 255, 0.6)" />
-          </svg>
-        );
-        
-      case 'deer':
-        return (
-          <svg viewBox="0 0 120 140" className="w-full h-full drop-shadow-2xl">
-            <ellipse cx="60" cy="85" rx="25" ry="30" fill="rgba(180, 83, 9, 0.9)" />
-            <ellipse cx="60" cy="35" rx="12" ry="18" fill="rgba(180, 83, 9, 0.9)" />
-            <path d="M 52 20 L 48 10 M 52 20 L 56 12 M 52 20 L 50 8" 
-                  stroke="rgba(120, 53, 15, 0.9)" strokeWidth="3" strokeLinecap="round" />
-            <path d="M 68 20 L 72 10 M 68 20 L 64 12 M 68 20 L 70 8" 
-                  stroke="rgba(120, 53, 15, 0.9)" strokeWidth="3" strokeLinecap="round" />
-            <circle cx="56" cy="32" r="2" fill="rgba(0, 0, 0, 0.9)" />
-            <circle cx="64" cy="32" r="2" fill="rgba(0, 0, 0, 0.9)" />
-            <rect x="48" y="110" width="4" height="25" fill="rgba(120, 53, 15, 0.8)" rx="2" />
-            <rect x="72" y="110" width="4" height="25" fill="rgba(120, 53, 15, 0.8)" rx="2" />
-          </svg>
-        );
-    }
-  };
-
-  return (
-    <div
-      className="fixed pointer-events-none z-10 transition-all duration-[2.5s] ease-in-out"
-      style={{
-        left: `${currentPosition.x}%`,
-        top: `${currentPosition.y}%`,
-        width: '120px',
-        height: '120px',
-        transform: `translate(-50%, -50%) rotate(${direction}deg)`,
-        opacity: 0.6,
-      }}
-    >
-      <div className="relative w-full h-full animate-bounce" style={{ 
-        animationDuration: `${2 + Math.sin(index) * 0.5}s`,
-        animationDelay: `${index * 0.2}s`
-      }}>
-        {getRealisticAnimalSVG()}
-      </div>
-    </div>
-  );
-};
-
-const TwinklingStar = ({ index }: { index: number }) => {
-  const [opacity, setOpacity] = useState(Math.random());
-  const [position] = useState({
-    x: Math.random() * 100,
-    y: Math.random() * 60
-  });
-
-  useEffect(() => {
-    const twinkle = () => {
-      setOpacity(Math.random() * 0.8 + 0.2);
-    };
-
-    const interval = setInterval(twinkle, 2000 + index * 500);
-    return () => clearInterval(interval);
-  }, [index]);
-
-  return (
-    <div
-      className="fixed pointer-events-none z-5 transition-opacity duration-1000"
-      style={{
-        left: `${position.x}%`,
-        top: `${position.y}%`,
-        opacity: opacity,
-      }}
-    >
-      <svg width="16" height="16" viewBox="0 0 16 16">
-       <path
-  d="M8 0 L9.5 6.5 L16 8 L9.5 9.5 L8 16 L6.5 9.5 L0 8 L6.5 6.5 Z"
-  fill="rgba(196, 43, 43, 0.8)"
-/>
-      </svg>
-    </div>
-  );
-};
-
-const VideoStoryPlayer: React.FC = () => {
+const StoryVideoPlayer: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [darkMode, setDarkMode] = useState(false);
+  const playerContainerRef = useRef<HTMLDivElement>(null);
+  const textContainerRef = useRef<HTMLDivElement>(null);
   
   // États principaux
   const [story, setStory] = useState<Story | null>(null);
@@ -304,135 +76,220 @@ const VideoStoryPlayer: React.FC = () => {
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [duration, setDuration] = useState<number>(0);
   const [volume, setVolume] = useState<number>(1);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [showChapterList, setShowChapterList] = useState<boolean>(true);
-  const [playbackRate, setPlaybackRate] = useState<number>(1);
-  const [isLooping, setIsLooping] = useState<boolean>(false);
-  const [isShuffling, setIsShuffling] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(false);
   const [isLiked, setIsLiked] = useState<boolean>(false);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [showControls, setShowControls] = useState<boolean>(true);
+  const [controlsTimeout, setControlsTimeout] = useState<NodeJS.Timeout | null>(null);
+  const [currentSegment, setCurrentSegment] = useState<ContentSegment | null>(null);
+  const [fontSize, setFontSize] = useState<number>(18);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const [buffered, setBuffered] = useState<number>(0);
   const [isBuffering, setIsBuffering] = useState<boolean>(false);
-  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [showChapterList, setShowChapterList] = useState<boolean>(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1);
+  const [showSubtitles, setShowSubtitles] = useState<boolean>(true);
+  const [autoPlay, setAutoPlay] = useState<boolean>(true);
 
-  // Génération des animaux
-  const [decorativeAnimals] = useState(() => {
-    const animals: Array<{ type: 'elephant' | 'monkey' | 'bird' | 'rabbit' | 'fox' | 'deer' }> = [];
-    const types: Array<'elephant' | 'monkey' | 'bird' | 'rabbit' | 'fox' | 'deer'> = ['elephant', 'monkey', 'bird', 'rabbit', 'fox', 'deer'];
+  // États pour la synchronisation
+  const [segmentProgress, setSegmentProgress] = useState<number>(0);
+  const [upcomingSegment, setUpcomingSegment] = useState<ContentSegment | null>(null);
+
+  // Récupérer l'ID depuis l'URL
+  const getStoryIdFromUrl = (): number => {
+    const pathParts = window.location.pathname.split('/');
+    const audiobookIndex = pathParts.findIndex(part => part === 'audiobook');
+    const storyId = audiobookIndex !== -1 && pathParts[audiobookIndex + 1] 
+      ? parseInt(pathParts[audiobookIndex + 1]) 
+      : 33; // Default fallback
+    return isNaN(storyId) ? 33 : storyId;
+  };
+
+  // Générer des segments de contenu basés sur les phrases
+  const generateContentSegments = (content: string, totalDuration: number): ContentSegment[] => {
+    // Diviser le contenu en phrases
+    const sentences = content.split(/[.!?]+/).filter(s => s.trim().length > 10);
     
-    for (let i = 0; i < 12; i++) {
-      animals.push({
-        type: types[Math.floor(Math.random() * types.length)]
-      });
-    }
-    return animals;
-  });
-
-  const generateVideoData = () => {
-    // Données simulées pour les vidéos
-    const videoStory: Story = {
-      id: 33,
-      title: "رحلة ليلى : الغابة والأقزام السبعة",
-      author: "mrikks",
-      description: "قصة مغامرات ليلى مع الأقزام السبعة في الغابة وسحر الملكة الشريرة.",
-      cover_img_url: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop",
-      range: "3-8 سنوات"
-    };
-
-    const videoChapters: Chapter[] = [
-      {
-        id: 1,
-        story_id: 33,
-        title: "المرآة المسحورة",
-        video_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-        thumbnail_url: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=400&h=300&fit=crop",
-        duration: 120,
-      },
-      {
-        id: 2,
-        story_id: 33,
-        title: "غابة الأسرار",
-        video_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-        thumbnail_url: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop",
-        duration: 95,
-      },
-      {
-        id: 3,
-        story_id: 33,
-        title: "تعويذة الملكة الشريرة",
-        video_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-        thumbnail_url: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=400&h=300&fit=crop",
-        duration: 110,
-      },
-      {
-        id: 4,
-        story_id: 33,
-        title: "هدية الصداقة",
-        video_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-        thumbnail_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop",
-        duration: 85,
-      },
-      {
-        id: 5,
-        story_id: 33,
-        title: "الزائرة المتنكرة",
-        video_url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
-        thumbnail_url: "https://images.unsplash.com/photo-1509114397022-ed747cca3f65?w=400&h=300&fit=crop",
-        duration: 135,
-      },
-    ];
-
-    return { story: videoStory, chapters: videoChapters };
+    if (sentences.length === 0) return [];
+    
+    // Calculer la durée moyenne par segment
+    const avgDurationPerSegment = totalDuration / sentences.length;
+    let currentTime = 0;
+    
+    return sentences.map((sentence, index) => {
+      const text = sentence.trim();
+      // Estimer la durée basée sur la longueur du texte (plus intelligent)
+      const wordsCount = text.split(' ').length;
+      const estimatedDuration = Math.max(3, Math.min(10, wordsCount * 0.4)); // Entre 3 et 10 secondes
+      
+      const startTime = currentTime;
+      const endTime = currentTime + estimatedDuration;
+      currentTime = endTime + 0.5; // Petite pause entre segments
+      
+      // Déterminer le type de segment
+      let type: 'paragraph' | 'dialogue' | 'description' | 'title' = 'description';
+      if (index === 0) type = 'title';
+      else if (text.includes('"') || text.includes('«') || text.includes('»')) type = 'dialogue';
+      else type = 'paragraph';
+      
+      return {
+        id: index + 1,
+        startTime,
+        endTime,
+        text,
+        type
+      };
+    });
   };
 
-  const loadVideoData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  // Charger les données depuis l'API
+  const fetchStoryData = async () => {
+  const storyId = getStoryIdFromUrl();
+  try {
+    setLoading(true);
+    setError(null);
 
-      // Simulation d'un délai de chargement
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      const { story: videoStory, chapters: videoChapters } = generateVideoData();
-
-      setStory(videoStory);
-      setChapters(videoChapters);
-
-      if (videoChapters.length > 0) {
-        setCurrentChapterIndex(0);
-      }
-
-    } catch (err) {
-      console.error('Erreur lors du chargement des vidéos:', err);
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
-    } finally {
-      setLoading(false);
+    console.log(`Fetching story data for ID: ${storyId}`);
+    const response = await fetch(`http://localhost:3000/api/story_chapter?story_id=${storyId}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-  };
+    
+    const data: APIResponse = await response.json();
+    console.log('API Response:', data);
+    
+    if (!data.success || !data.story || !data.chapters || data.chapters.length === 0) {
+      throw new Error('Données invalides ou histoire non trouvée');
+    }
 
+    setStory(data.story);
+
+    // Transformer les chapitres ET tester les URLs
+   const transformedChapters = data.chapters.map((chapter, index) => {
+  // Utiliser directement audio_url puisque ce sont des fichiers audio
+  const audioUrl = chapter.audio_url;
+        // Tester l'URL si elle existe
+        if (audioUrl) {
+          console.log(`Test de l'URL pour le chapitre ${index + 1}:`, audioUrl);
+ console.log(`URL du chapitre ${index + 1}:`, audioUrl);
+          if (!audioUrl) {
+            console.warn(`URL invalide pour le chapitre ${index + 1}:`, audioUrl);
+          }
+        }
+        
+        const estimatedDuration = Math.max(60, chapter.content.length * 0.1);
+        const contentSegments = generateContentSegments(
+          chapter.content, 
+          chapter.duration || estimatedDuration
+        );
+
+        return {
+          ...chapter,
+         audio_url: audioUrl,
+          duration: chapter.duration || estimatedDuration,
+          contentSegments
+        };
+      })
+    ;
+
+    setChapters(transformedChapters);
+    setCurrentChapterIndex(0);
+
+  } catch (err) {
+    console.error('Failed to load story data:', err);
+    setError(err instanceof Error ? err.message : 'Une erreur est survenue lors du chargement');
+  } finally {
+    setLoading(false);
+  }
+};
   useEffect(() => {
-    loadVideoData();
+    fetchStoryData();
   }, []);
 
   const currentChapter = chapters[currentChapterIndex];
 
+  // Synchronisation du texte avec la vidéo
+  useEffect(() => {
+    if (!currentChapter?.contentSegments) return;
+
+    // Trouver le segment actuel
+    const activeSegment = currentChapter.contentSegments.find(
+      seg => currentTime >= seg.startTime && currentTime < seg.endTime
+    );
+
+    // Trouver le segment suivant
+    const nextSegment = currentChapter.contentSegments.find(
+      seg => seg.startTime > currentTime
+    );
+
+    if (activeSegment && activeSegment.id !== currentSegment?.id) {
+      setCurrentSegment(activeSegment);
+      
+      // Auto-scroll vers le segment actuel
+      if (textContainerRef.current) {
+        const segmentElement = textContainerRef.current.querySelector(`[data-segment-id="${activeSegment.id}"]`);
+        if (segmentElement) {
+          segmentElement.scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'center' 
+          });
+        }
+      }
+    }
+
+    setUpcomingSegment(nextSegment || null);
+
+    // Calculer le progrès dans le segment actuel
+    if (activeSegment) {
+      const segmentDuration = activeSegment.endTime - activeSegment.startTime;
+      const segmentElapsed = currentTime - activeSegment.startTime;
+      setSegmentProgress(Math.max(0, Math.min(1, segmentElapsed / segmentDuration)));
+    }
+
+  }, [currentTime, currentChapter, currentSegment?.id]);
+
+  // Formater le temps
   const formatTime = (time: number): string => {
-    const minutes = Math.floor(time / 60);
+    if (isNaN(time)) return "0:00";
+    const hours = Math.floor(time / 3600);
+    const minutes = Math.floor((time % 3600) / 60);
     const seconds = Math.floor(time % 60);
+    
+    if (hours > 0) {
+      return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    }
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  const togglePlayPause = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
+  // Contrôles vidéo
+ 
+const togglePlayPause = async () => {
+  if (!videoRef.current) return;
+  
+  const audio = videoRef.current;
+  
+  try {
+    if (audio.paused) {
+      console.log('Tentative de lecture...');
+      await audio.play();
+      setIsPlaying(true);
+      setError(null);
+      console.log('Lecture démarrée');
+    } else {
+      audio.pause();
+      setIsPlaying(false);
+      console.log('Lecture en pause');
     }
-  };
+  } catch (error) {
+    console.error('Erreur de lecture:', error);
+    setError('Impossible de lire le fichier audio.');
+    setIsPlaying(false);
+  }
+  
+  resetControlsTimeout();
+};
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const seekTime = (parseFloat(e.target.value) / 100) * duration;
@@ -440,6 +297,7 @@ const VideoStoryPlayer: React.FC = () => {
       videoRef.current.currentTime = seekTime;
       setCurrentTime(seekTime);
     }
+    resetControlsTimeout();
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -451,6 +309,7 @@ const VideoStoryPlayer: React.FC = () => {
     if (newVolume > 0 && isMuted) {
       setIsMuted(false);
     }
+    resetControlsTimeout();
   };
 
   const toggleMute = () => {
@@ -458,6 +317,7 @@ const VideoStoryPlayer: React.FC = () => {
       videoRef.current.muted = !isMuted;
       setIsMuted(!isMuted);
     }
+    resetControlsTimeout();
   };
 
   const skipTime = (seconds: number) => {
@@ -466,735 +326,1403 @@ const VideoStoryPlayer: React.FC = () => {
       videoRef.current.currentTime = newTime;
       setCurrentTime(newTime);
     }
+    resetControlsTimeout();
+  };
+
+  const goToSegment = (segmentId: number) => {
+    if (!currentChapter?.contentSegments) return;
+    
+    const segment = currentChapter.contentSegments.find(s => s.id === segmentId);
+    if (segment && videoRef.current) {
+      videoRef.current.currentTime = segment.startTime;
+      setCurrentTime(segment.startTime);
+    }
+    resetControlsTimeout();
   };
 
   const handleNextChapter = () => {
     if (currentChapterIndex < chapters.length - 1) {
       setCurrentChapterIndex(currentChapterIndex + 1);
-    } else if (isLooping) {
-      setCurrentChapterIndex(0);
+      setCurrentTime(0);
+      resetControlsTimeout();
     }
   };
 
   const handlePreviousChapter = () => {
     if (currentChapterIndex > 0) {
       setCurrentChapterIndex(currentChapterIndex - 1);
+      setCurrentTime(0);
+      resetControlsTimeout();
     }
+  };
+
+  const shareContent = () => {
+    const shareData = {
+      title: story?.title || 'قصة مرئية',
+      text: `${story?.title} - ${currentChapter?.title}\n${story?.description}`,
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
+      navigator.share(shareData);
+    } else {
+      navigator.clipboard.writeText(`${shareData.title}\n${shareData.text}\n${shareData.url}`);
+      alert('تم نسخ معلومات القصة!');
+    }
+    resetControlsTimeout();
   };
 
   const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      videoRef.current?.requestFullscreen();
-      setIsFullscreen(true);
+    if (!isFullscreen) {
+      if (playerContainerRef.current?.requestFullscreen) {
+        playerContainerRef.current.requestFullscreen();
+      }
     } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
     }
+    setIsFullscreen(!isFullscreen);
+    resetControlsTimeout();
   };
 
-  const shareStory = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: story?.title || 'قصة مرئية',
-        text: story?.description || 'شاهد هذه القصة الرائعة',
-        url: window.location.href,
-      });
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      alert('تم نسخ الرابط!');
+  const resetControlsTimeout = () => {
+    setShowControls(true);
+    if (controlsTimeout) {
+      clearTimeout(controlsTimeout);
     }
+    setControlsTimeout(setTimeout(() => setShowControls(false), 4000));
   };
 
-  const retryFetch = () => {
-    loadVideoData();
+  const handleMouseMove = () => {
+    resetControlsTimeout();
   };
 
+  // Effets pour gérer les événements vidéo
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
+    if (!video || !currentChapter) return;
 
     const updateTime = () => setCurrentTime(video.currentTime);
-    const updateDuration = () => setDuration(video.duration);
+    const updateDuration = () => {
+      if (!isNaN(video.duration)) {
+        setDuration(video.duration);
+      }
+    };
+    
     const handleLoadStart = () => setIsBuffering(true);
     const handleCanPlay = () => setIsBuffering(false);
+    const handleWaiting = () => setIsBuffering(true);
+    const handlePlaying = () => {
+      setIsBuffering(false);
+      setIsPlaying(true);
+    };
+    const handlePause = () => setIsPlaying(false);
+    
     const handleEnded = () => {
       setIsPlaying(false);
-      if (currentChapterIndex < chapters.length - 1) {
-        handleNextChapter();
-      } else if (isLooping) {
-        setCurrentChapterIndex(0);
-        setTimeout(() => video.play(), 100);
+      if (currentChapterIndex < chapters.length - 1 && autoPlay) {
+        setTimeout(() => handleNextChapter(), 2000);
       }
     };
-
-    const updateBuffer = () => {
+    
+    const handleProgress = () => {
       if (video.buffered.length > 0) {
         const bufferedEnd = video.buffered.end(video.buffered.length - 1);
-        const duration = video.duration;
-        if (duration > 0) {
-          setBuffered((bufferedEnd / duration) * 100);
-        }
+        const bufferedPercentage = (bufferedEnd / duration) * 100;
+        setBuffered(bufferedPercentage);
       }
     };
 
+    
+const handleError = (e: any) => {
+  console.error('Audio error:', e);
+  const error = e.target.error;
+  let errorMessage = 'خطأ في تحميل الصوت';
+  
+  if (error) {
+    switch (error.code) {
+      case error.MEDIA_ERR_NETWORK:
+        errorMessage = 'خطأ في الشبكة';
+        break;
+      case error.MEDIA_ERR_SRC_NOT_SUPPORTED:
+        errorMessage = 'تنسيق الملف غير مدعوم';
+        break;
+      default:
+        errorMessage = 'خطأ في تشغيل الصوت';
+    }
+  }
+  
+  setError(errorMessage);
+  setIsBuffering(false);
+};
+
+    // Événements vidéo
     video.addEventListener('timeupdate', updateTime);
+    video.addEventListener('durationchange', updateDuration);
     video.addEventListener('loadedmetadata', updateDuration);
     video.addEventListener('loadstart', handleLoadStart);
     video.addEventListener('canplay', handleCanPlay);
+    video.addEventListener('waiting', handleWaiting);
+    video.addEventListener('playing', handlePlaying);
+    video.addEventListener('pause', handlePause);
     video.addEventListener('ended', handleEnded);
-    video.addEventListener('progress', updateBuffer);
+    video.addEventListener('progress', handleProgress);
+    video.addEventListener('error', handleError);
 
-    video.volume = volume;
-    video.playbackRate = playbackRate;
+    // Configuration vidéo
+    const media = video; // C'est maintenant un élément audio
+media.volume = volume;
+media.muted = isMuted;
+media.playbackRate = playbackSpeed;
 
     return () => {
       video.removeEventListener('timeupdate', updateTime);
+      video.removeEventListener('durationchange', updateDuration);
       video.removeEventListener('loadedmetadata', updateDuration);
       video.removeEventListener('loadstart', handleLoadStart);
       video.removeEventListener('canplay', handleCanPlay);
+      video.removeEventListener('waiting', handleWaiting);
+      video.removeEventListener('playing', handlePlaying);
+      video.removeEventListener('pause', handlePause);
       video.removeEventListener('ended', handleEnded);
-      video.removeEventListener('progress', updateBuffer);
+      video.removeEventListener('progress', handleProgress);
+      video.removeEventListener('error', handleError);
     };
-  }, [currentChapterIndex, chapters.length, isLooping, volume, playbackRate]);
+  }, [currentChapter, volume, isMuted, playbackSpeed, currentChapterIndex, autoPlay]);
 
-  if (error && !story) {
-  return (
-    <div className={`min-h-screen flex items-center justify-center relative overflow-hidden ${
-      darkMode 
-        ? 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900' 
-        : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'
-    }`}>
-      {decorativeAnimals.slice(0, 5).map((animal, index) => (
-        <RealisticAnimal key={`error-${index}`} type={animal.type} index={index} />
-      ))}
-      
-      {[...Array(8)].map((_, i) => (
-        <TwinklingStar key={`error-star-${i}`} index={i} />
-      ))}
-      
-      <div className={`bg-white/10 backdrop-blur-xl rounded-3xl p-12 border max-w-md w-full mx-4 relative z-20 text-center ${
-        darkMode ? 'border-white/20' : 'border-white/30'
-      }`}>
-        <div className="w-20 h-20 mx-auto mb-6 bg-red-500/20 rounded-full flex items-center justify-center">
-          <AlertCircle className="w-10 h-10 text-red-400" />
-        </div>
-        <h3 className="text-2xl font-bold text-white mb-4">خطأ في التحميل</h3>
-        <p className="text-white/70 mb-6">{error}</p>
-        <button
-          onClick={retryFetch}
-          className="bg-gradient-to-r from-violet-500 to-purple-500 text-white px-6 py-3 rounded-2xl font-medium hover:scale-105 transition-all duration-200"
-        >
-          إعادة المحاولة
-        </button>
-      </div>
-    </div>
-  );
-}
+  // Initialiser le timeout des contrôles
+  useEffect(() => {
+    resetControlsTimeout();
+    
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    
+    return () => {
+      if (controlsTimeout) {
+        clearTimeout(controlsTimeout);
+      }
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
 
+  // Changer de chapitre automatiquement
+  useEffect(() => {
+    if (videoRef.current && currentChapter) {
+      videoRef.current.load(); // Recharger la vidéo
+      setCurrentTime(0);
+      if (isPlaying) {
+        // Petite pause pour laisser la vidéo se charger
+        setTimeout(() => {
+          videoRef.current?.play().catch(console.error);
+        }, 500);
+      }
+    }
+  }, [currentChapterIndex]);
+
+  // Affichage des états de chargement et d'erreur
   if (loading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center relative overflow-hidden ${
-        darkMode 
-          ? 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900' 
-          : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'
-      }`}>
-        {decorativeAnimals.slice(0, 5).map((animal, index) => (
-          <RealisticAnimal key={`loading-${index}`} type={animal.type} index={index} />
-        ))}
-        
-        {[...Array(8)].map((_, i) => (
-          <TwinklingStar key={`loading-star-${i}`} index={i} />
-        ))}
-        
-        <div className={`bg-white/10 backdrop-blur-xl rounded-3xl p-12 border max-w-md w-full mx-4 relative z-20 ${
-          darkMode ? 'border-white/20' : 'border-white/30'
-        }`}>
-          <div className="text-center">
-            <div className="relative mb-8">
-              <div className="w-20 h-20 mx-auto">
-                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-violet-400 to-purple-400 animate-pulse"></div>
-                <div className={`absolute inset-2 rounded-full ${
-                  darkMode ? 'bg-slate-900' : 'bg-white'
-                }`}></div>
-                <Video className="absolute inset-4 w-12 h-12 text-violet-400" />
-              </div>
-            </div>
-            <h3 className="text-2xl font-bold text-white mb-4">جاري التحميل</h3>
-            <div className="w-full bg-white/10 rounded-full h-3 mb-4">
-              <div className="bg-gradient-to-r from-violet-400 to-purple-400 h-3 rounded-full animate-pulse" style={{ width: '60%' }}></div>
-            </div>
-            <p className="text-white/70">تحضير قصتك المرئية</p>
-          </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800">
+        <div className="text-center">
+          <Loader2 className="w-16 h-16 animate-spin mx-auto mb-6 text-violet-500" />
+          <h2 className="text-2xl font-bold text-white mb-2">جاري تحميل القصة...</h2>
+          <p className="text-slate-300">تحضير المحتوى المرئي والنصي</p>
         </div>
       </div>
     );
   }
 
-  if (!story) {
-    return null;
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800">
+        <div className="text-center max-w-md p-6">
+          <AlertCircle className="w-16 h-16 mx-auto mb-6 text-red-500" />
+          <h2 className="text-2xl font-bold mb-4 text-white">خطأ في التحميل</h2>
+          <p className="mb-6 text-slate-300 leading-relaxed">{error}</p>
+          <button
+            onClick={fetchStoryData}
+            className="px-6 py-3 rounded-lg font-medium bg-violet-600 text-white hover:bg-violet-700 transition-colors"
+          >
+            إعادة المحاولة
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!story || !currentChapter) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800">
+        <div className="text-center">
+          <BookOpen className="w-16 h-16 mx-auto mb-6 text-slate-500" />
+          <h2 className="text-xl text-white">لا توجد بيانات للعرض</h2>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className={`min-h-screen transition-all duration-500 relative overflow-hidden ${
-      darkMode 
-        ? 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900' 
-        : 'bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50'
-    }`}>
-      {/* Background Animals and Stars */}
-      {decorativeAnimals.map((animal, index) => (
-        <RealisticAnimal key={index} type={animal.type} index={index} />
-      ))}
-      
-      {[...Array(15)].map((_, i) => (
-        <TwinklingStar key={i} index={i} />
-      ))}
-
-      {/* Header */}
-      <header className="relative z-30 p-6 flex items-center justify-between">
+    <div className="min-h-screen bg-slate-900" onMouseMove={handleMouseMove}>
+      {/* En-tête */}
+      <header className="sticky top-0 z-20 p-4 flex items-center justify-between backdrop-blur-md bg-slate-900/95 border-b border-slate-800">
         <button 
           onClick={() => window.history.back()}
-          className={`p-3 rounded-2xl backdrop-blur-xl border transition-all duration-200 hover:scale-110 ${
-            darkMode 
-              ? 'bg-violet-600 border-slate-700/50 text-white hover:bg-slate-700/70' 
-              : 'bg-sky-200 border-white/50 text-slate-700 hover:bg-sky-200/70'
-          }`}
+          className="p-2 rounded-full text-white hover:bg-slate-800 transition-colors"
         >
           <ChevronLeft className="w-6 h-6" />
         </button>
 
-        <div className="text-center">
-          <h1 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-slate-800'}`} dir="rtl">
+        <div className="text-center flex-1 px-4">
+          <h1 className="text-lg font-bold truncate text-white">
             {story.title}
           </h1>
-          <p className={`text-sm ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-            {story.author}
+          <p className="text-sm text-slate-400 flex items-center justify-center gap-2">
+            <Video className="w-4 h-4" />
+            {story.author} • الفصل {currentChapterIndex + 1} من {chapters.length}
+            {duration > 0 && (
+              <>
+                <Clock className="w-4 h-4 ml-2" />
+                {formatTime(currentTime)} / {formatTime(duration)}
+              </>
+            )}
           </p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => setDarkMode(!darkMode)}
-            className={`p-3 rounded-2xl backdrop-blur-xl border transition-all duration-200 hover:scale-110 ${
-              darkMode 
-                ? 'bg-slate-800 border-slate-700/50 text-white hover:bg-slate-700/70' 
-                : 'bg-white/80 border-white/50 text-slate-700 hover:bg-white'
-            }`}
+            onClick={() => setShowChapterList(!showChapterList)}
+            className="p-2 text-white hover:bg-slate-800 rounded-full transition-colors"
+            title="قائمة الفصول"
           >
-            {darkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            <List className="w-5 h-5" />
+          </button>
+          <button
+            onClick={() => setIsLiked(!isLiked)}
+            className={`p-2 rounded-full transition-colors ${isLiked ? 'text-red-500' : 'text-white hover:bg-slate-800'}`}
+            title="إضافة للمفضلة"
+          >
+            <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
+          </button>
+          <button
+            onClick={shareContent}
+            className="p-2 text-white hover:bg-slate-800 rounded-full transition-colors"
+            title="مشاركة"
+          >
+            <Share2 className="w-5 h-5" />
           </button>
         </div>
       </header>
 
-      {/* Error Banner */}
-      {error && (
-        <div className="relative z-20 mx-6 mb-4">
-          <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-2xl p-4 backdrop-blur-xl">
-            <div className="flex items-center gap-3">
-              <AlertCircle className="w-5 h-5 text-yellow-400 flex-shrink-0" />
-              <div className="flex-1">
-                <p className="text-yellow-200 text-sm">
-                  تعذر تحميل بعض البيانات. يتم عرض البيانات المحفوظة مؤقتاً.
-                </p>
-                <button
-                  onClick={retryFetch}
-                  className="text-yellow-300 hover:text-yellow-100 text-xs underline mt-1"
-                >
-                  إعادة المحاولة
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Video Element */}
-      <video
-        ref={videoRef}
-        src={currentChapter?.video_url}
-        preload="metadata"
-        className="hidden"
-        onLoadedMetadata={() => {
-          if (videoRef.current) {
-            setDuration(videoRef.current.duration);
-          }
-        }}
-      />
-
-      {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-6 py-12 relative z-20">
-        <div className="grid gap-12 lg:grid-cols-2">
-          {/* Video Player Card */}
-          <div className={`rounded-3xl border backdrop-blur-2xl p-8 ${
-            darkMode 
-              ? 'bg-slate-900/50 border-slate-700/50' 
-              : 'bg-white/50 border-white/50'
-          } shadow-2xl relative overflow-hidden`}>
+      <div className="flex flex-col lg:flex-row">
+        {/* Zone du lecteur vidéo principal */}
+        <div className="flex-1">
+          <div 
+            ref={playerContainerRef}
+            className="relative bg-black group"
+            style={{ aspectRatio: isFullscreen ? 'auto' : '16/9' }}
+          >
+            {/* Vidéo principale */}
             
-            {/* Video Display */}
-            <div className="relative mb-8 z-10">
-              <div className="relative w-full h-80 rounded-2xl overflow-hidden group bg-black">
-                <video
-                  ref={videoRef}
-                  src={currentChapter?.video_url}
-                  poster={currentChapter?.thumbnail_url}
-                  className="w-full h-full object-cover"
-                  onClick={togglePlayPause}
-                />
-                
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
-                
-                {/* Video Controls Overlay */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-                  <button 
-                    onClick={togglePlayPause}
-                    className="bg-white/20 backdrop-blur-xl rounded-full p-8 hover:bg-white/30 transition-all duration-200 hover:scale-110"
-                  >
-                    {isPlaying ? (
-                      <Pause className="w-12 h-12 text-white" />
-                    ) : (
-                      <Play className="w-12 h-12 text-white ml-2" />
-                    )}
-                  </button>
-                </div>
+<audio
+  ref={videoRef}
+  className="w-full h-full"
+  preload="auto"
+  playsInline
+  controls={false}
+>
+  <source 
+    src={currentChapter.audio_url} 
+    type="audio/mpeg"
+  />
+  <p className="text-white text-center p-4">
+    متصفحك لا يدعم تشغيل الصوت
+  </p>
+</audio>
+<div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-purple-900 to-blue-900">
+  <div className="absolute inset-0 opacity-30">
+    <img
+      src={currentChapter.image_url || story.cover_img_url}
+      alt={currentChapter.title}
+      className="w-full h-full object-cover"
+    />
+  </div>
+  
+  <div className="relative z-10 text-center">
+    <div className="mb-8">
+      <img
+        src={currentChapter.image_url || story.cover_img_url}
+        alt={currentChapter.title}
+        className="w-48 h-48 rounded-full mx-auto shadow-2xl border-4 border-white/20"
+      />
+    </div>
+    
+    {isPlaying && (
+      <div className="flex justify-center gap-1 mb-6">
+        {[...Array(5)].map((_, i) => (
+          <div
+            key={i}
+            className="w-2 bg-white rounded-full animate-pulse"
+            style={{
+              height: `${20 + Math.random() * 30}px`,
+              animationDelay: `${i * 0.1}s`
+            }}
+          />
+        ))}
+      </div>
+    )}
+    
+    <h2 className="text-2xl font-bold text-white mb-2">
+      {currentChapter.title}
+    </h2>
+    <p className="text-white/80">
+      قصة صوتية • {formatTime(currentTime)} / {formatTime(duration)}
+    </p>
+  </div>
+</div>
 
-                {/* Loading indicator */}
-                {isBuffering && (
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                    <div className="bg-white/20 backdrop-blur-xl rounded-full p-4">
-                      <Loader2 className="w-8 h-8 text-white animate-spin" />
-                    </div>
+
+            {/* Sous-titres synchronisés */}
+            {showSubtitles && currentSegment && (
+              <div className="absolute bottom-20 left-4 right-4 text-center">
+                <div className="inline-block bg-black/80 backdrop-blur-sm text-white px-6 py-3 rounded-lg max-w-4xl">
+                  <p 
+                    className="text-lg leading-relaxed font-medium"
+                    style={{ fontSize: `${fontSize}px` }}
+                  >
+                    {currentSegment.text}
+                  </p>
+                  
+                  {/* Barre de progression du sous-titre */}
+                  <div className="mt-2 h-1 bg-white/30 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-violet-500 transition-all duration-300"
+                      style={{ width: `${segmentProgress * 100}%` }}
+                    />
                   </div>
-                )}
-
-                {/* Action Buttons */}
-                <div className="absolute top-4 right-4 flex gap-2">
-                  <button
-                    onClick={toggleFullscreen}
-                    className="p-3 rounded-full bg-white/20 text-white hover:bg-white/30 backdrop-blur-xl transition-all duration-200 hover:scale-110"
-                  >
-                    {isFullscreen ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
-                  </button>
-                  <button
-                    onClick={() => setIsLiked(!isLiked)}
-                    className={`p-3 rounded-full backdrop-blur-xl transition-all duration-200 hover:scale-110 ${
-                      isLiked 
-                        ? 'bg-red-500 text-white' 
-                        : 'bg-white/20 text-white hover:bg-white/30'
-                    }`}
-                  >
-                    <Heart className={`w-5 h-5 ${isLiked ? 'fill-current' : ''}`} />
-                  </button>
-                  <button
-                    onClick={shareStory}
-                    className="p-3 rounded-full bg-white/20 text-white hover:bg-white/30 backdrop-blur-xl transition-all duration-200 hover:scale-110"
-                  >
-                    <Share2 className="w-5 h-5" />
-                  </button>
-                </div>
-
-                {/* Chapter indicator */}
-                <div className="absolute bottom-4 left-4">
-                  <div className="bg-white/20 backdrop-blur-xl rounded-full px-3 py-1 text-white text-sm">
-                    {currentChapterIndex + 1} / {chapters.length}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Chapter Info */}
-            <div className="text-center mb-8 relative z-10">
-              <h2 className={`text-2xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-slate-800'}`} dir="rtl">
-                {currentChapter?.title || `الفصل ${currentChapterIndex + 1}`}
-              </h2>
-              <p className={`${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                الفصل {currentChapterIndex + 1} من {chapters.length} • {currentChapter?.duration && formatTime(currentChapter.duration)}
-              </p>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="mb-8 relative z-10">
-              <div className="relative">
-                <div className={`w-full h-3 rounded-full ${
-                  darkMode ? 'bg-slate-700' : 'bg-slate-200'
-                }`}>
-                  {/* Buffer indicator */}
-                  <div 
-                    className={`h-full rounded-full transition-all duration-300 ${
-                      darkMode ? 'bg-slate-600' : 'bg-slate-300'
-                    }`}
-                    style={{ width: `${buffered}%` }}
-                  />
-                  {/* Progress indicator */}
-                  <div 
-                    className="h-full bg-gradient-to-r from-violet-500 to-purple-500 rounded-full transition-all duration-300 absolute top-0 left-0"
-                    style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
-                  />
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={duration ? (currentTime / duration) * 100 : 0}
-                  onChange={handleSeek}
-                  className="absolute inset-0 w-full h-3 opacity-0 cursor-pointer"
-                />
-              </div>
-              <div className={`flex justify-between text-sm mt-2 ${
-                darkMode ? 'text-slate-400' : 'text-slate-500'
-              }`}>
-                <span>{formatTime(currentTime)}</span>
-                <span>{formatTime(duration)}</span>
-              </div>
-            </div>
-
-            {/* Controls */}
-            <div className="flex items-center justify-center gap-6 mb-8 relative z-10">
-              <button
-                onClick={() => setIsShuffling(!isShuffling)}
-                className={`p-3 rounded-2xl transition-all duration-200 hover:scale-110 ${
-                  isShuffling 
-                    ? 'bg-violet-500 text-white' 
-                    : darkMode
-                      ? 'bg-slate-800/50 text-slate-400 hover:bg-slate-700'
-                      : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                }`}
-              >
-                <Shuffle className="w-5 h-5" />
-              </button>
-
-              <button
-                onClick={handlePreviousChapter}
-                disabled={currentChapterIndex === 0}
-                className={`p-4 rounded-2xl transition-all duration-200 hover:scale-110 disabled:opacity-50 ${
-                  darkMode
-                    ? 'bg-slate-800/50 text-white hover:bg-slate-700'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}
-              >
-                <SkipBack className="w-6 h-6" />
-              </button>
-
-              <button
-                onClick={() => skipTime(-10)}
-                className={`p-4 rounded-2xl transition-all duration-200 hover:scale-110 ${
-                  darkMode
-                    ? 'bg-slate-800/50 text-white hover:bg-slate-700'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}
-              >
-                <Rewind className="w-6 h-6" />
-              </button>
-
-              <button
-                onClick={togglePlayPause}
-                disabled={isBuffering}
-                className="p-6 rounded-full bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-2xl transition-all duration-200 hover:scale-110 hover:shadow-violet-500/25 disabled:opacity-70"
-              >
-                {isBuffering ? (
-                  <Loader2 className="w-8 h-8 animate-spin" />
-                ) : isPlaying ? (
-                  <Pause className="w-8 h-8" />
-                ) : (
-                  <Play className="w-8 h-8 ml-1" />
-                )}
-              </button>
-
-              <button
-                onClick={() => skipTime(10)}
-                className={`p-4 rounded-2xl transition-all duration-200 hover:scale-110 ${
-                  darkMode
-                    ? 'bg-slate-800/50 text-white hover:bg-slate-700'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}
-              >
-                <FastForward className="w-6 h-6" />
-              </button>
-
-              <button
-                onClick={handleNextChapter}
-                disabled={currentChapterIndex === chapters.length - 1 && !isLooping}
-                className={`p-4 rounded-2xl transition-all duration-200 hover:scale-110 disabled:opacity-50 ${
-                  darkMode
-                    ? 'bg-slate-800/50 text-white hover:bg-slate-700'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}
-              >
-                <SkipForward className="w-6 h-6" />
-              </button>
-
-              <button
-                onClick={() => setIsLooping(!isLooping)}
-                className={`p-3 rounded-2xl transition-all duration-200 hover:scale-110 ${
-                  isLooping 
-                    ? 'bg-violet-500 text-white' 
-                    : darkMode
-                      ? 'bg-slate-800/50 text-slate-400 hover:bg-slate-700'
-                      : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
-                }`}
-              >
-                <Repeat className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Volume Control */}
-            <div className="flex items-center gap-4 mb-6 relative z-10">
-              <button
-                onClick={toggleMute}
-                className={`p-3 rounded-2xl transition-all duration-200 hover:scale-110 ${
-                  darkMode
-                    ? 'bg-slate-800/50 text-white hover:bg-slate-700'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}
-              >
-                {isMuted || volume === 0 ? (
-                  <VolumeX className="w-5 h-5" />
-                ) : (
-                  <Volume2 className="w-5 h-5" />
-                )}
-              </button>
-              
-              <div className="flex-1 relative">
-                <div className={`w-full h-2 rounded-full ${
-                  darkMode ? 'bg-slate-700' : 'bg-slate-200'
-                }`}>
-                  <div 
-                    className="h-full bg-gradient-to-r from-violet-500 to-purple-500 rounded-full transition-all duration-300"
-                    style={{ width: `${(isMuted ? 0 : volume) * 100}%` }}
-                  />
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={isMuted ? 0 : volume * 100}
-                  onChange={handleVolumeChange}
-                  className="absolute inset-0 w-full h-2 opacity-0 cursor-pointer"
-                />
-              </div>
-              
-              <span className={`text-sm font-medium min-w-[3rem] text-center ${
-                darkMode ? 'text-slate-400' : 'text-slate-500'
-              }`}>
-                {Math.round((isMuted ? 0 : volume) * 100)}%
-              </span>
-            </div>
-
-            {/* Playback Rate Control */}
-            <div className="flex items-center justify-between gap-4 mb-6 relative z-10">
-              <span className={`text-sm font-medium ${
-                darkMode ? 'text-slate-400' : 'text-slate-600'
-              }`}>
-                سرعة التشغيل:
-              </span>
-              <div className="flex gap-2">
-                {[0.5, 0.75, 1, 1.25, 1.5, 2].map((rate) => (
-                  <button
-                    key={rate}
-                    onClick={() => setPlaybackRate(rate)}
-                    className={`px-3 py-1 rounded-full text-sm font-medium transition-all duration-200 hover:scale-105 ${
-                      playbackRate === rate
-                        ? 'bg-violet-500 text-white'
-                        : darkMode
-                          ? 'bg-slate-800/50 text-slate-400 hover:bg-slate-700'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
-                  >
-                    {rate}x
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Action Button */}
-            <div className="flex gap-4 relative z-10">
-              <button
-                onClick={() => setShowChapterList(!showChapterList)}
-                className={`flex-1 flex items-center justify-center gap-3 py-4 rounded-2xl font-medium transition-all duration-200 hover:scale-105 ${
-                  showChapterList 
-                    ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-lg' 
-                    : darkMode
-                      ? 'bg-slate-800/50 text-slate-300 hover:bg-slate-700'
-                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}
-              >
-                <List className="w-5 h-5" />
-                قائمة الفصول
-              </button>
-            </div>
-          </div>
-
-          {/* Content Panel */}
-          <div className="space-y-6">
-            {/* Chapter List */}
-            {showChapterList && (
-              <div className={`rounded-3xl border backdrop-blur-2xl p-6 ${
-                darkMode 
-                  ? 'bg-slate-900/50 border-slate-700/50' 
-                  : 'bg-white/50 border-white/50'
-              } shadow-xl transform transition-all duration-500 relative overflow-hidden`}>
-                
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-slate-800'}`}>
-                    فصول القصة
-                  </h3>
-                  <span className={`px-3 py-1 rounded-full text-sm ${
-                    darkMode ? 'bg-slate-800 text-slate-300' : 'bg-slate-100 text-slate-600'
-                  }`}>
-                    {chapters.length} فصل
-                  </span>
-                </div>
-                
-                <div className="space-y-3 max-h-80 overflow-y-auto custom-scrollbar">
-                  {chapters.map((chapter, index) => (
-                    <button
-                      key={chapter.id}
-                      onClick={() => {
-                        setCurrentChapterIndex(index);
-                        setCurrentTime(0);
-                        if (isPlaying && videoRef.current) {
-                          setTimeout(() => videoRef.current?.play(), 100);
-                        }
-                      }}
-                      className={`w-full p-4 rounded-2xl text-right transition-all duration-200 hover:scale-[1.02] group ${
-                        index === currentChapterIndex
-                          ? 'bg-gradient-to-r from-violet-500 to-purple-500 text-white shadow-lg'
-                          : darkMode
-                            ? 'bg-slate-800/30 hover:bg-slate-800/60 text-slate-300'
-                            : 'bg-slate-50 hover:bg-slate-100 text-slate-700'
-                      }`}
-                    >
-                      <div className="flex items-center gap-4">
-                        {/* Thumbnail */}
-                        <div className="w-16 h-12 rounded-lg overflow-hidden bg-black/20 flex-shrink-0">
-                          {chapter.thumbnail_url ? (
-                            <img
-                              src={chapter.thumbnail_url}
-                              alt={chapter.title}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center">
-                              <Video className="w-6 h-6 opacity-50" />
-                            </div>
-                          )}
-                        </div>
-                        
-                        <div className="flex-1 text-right">
-                          <div className="flex items-center justify-between mb-1">
-                            <h4 className="font-medium">
-                              {chapter.title || `الفصل ${index + 1}`}
-                            </h4>
-                            <span className={`text-xs px-2 py-1 rounded-full ${
-                              index === currentChapterIndex 
-                                ? 'bg-white/20 text-white' 
-                                : darkMode 
-                                  ? 'bg-slate-700 text-slate-400'
-                                  : 'bg-slate-200 text-slate-500'
-                            }`}>
-                              {index + 1}
-                            </span>
-                          </div>
-                          {chapter.duration && (
-                            <p className={`text-xs ${
-                              index === currentChapterIndex 
-                                ? 'text-white/70' 
-                                : darkMode 
-                                  ? 'text-slate-400'
-                                  : 'text-slate-500'
-                            }`}>
-                              المدة: {formatTime(chapter.duration)}
-                            </p>
-                          )}
-                        </div>
-                        
-                        <div className="flex items-center gap-3">
-                          {index === currentChapterIndex && (
-                            <div className="flex items-center gap-1">
-                              {isPlaying ? (
-                                <Waves className="w-5 h-5 text-white animate-pulse" />
-                              ) : (
-                                <div className="w-3 h-3 bg-white rounded-full"></div>
-                              )}
-                            </div>
-                          )}
-                          <ChevronRight className={`w-4 h-4 transition-transform group-hover:translate-x-1 ${
-                            index === currentChapterIndex 
-                              ? 'text-white' 
-                              : darkMode 
-                                ? 'text-slate-400'
-                                : 'text-slate-400'
-                          }`} />
-                        </div>
-                      </div>
-                    </button>
-                  ))}
                 </div>
               </div>
             )}
 
-            {/* Story Info */}
-            <div className={`rounded-3xl border backdrop-blur-2xl p-6 ${
-              darkMode 
-                ? 'bg-slate-900/50 border-slate-700/50' 
-                : 'bg-white/50 border-white/50'
-            } shadow-xl`}>
-              <div className="flex items-center gap-4 mb-4">
-                <div className="w-16 h-16 rounded-2xl overflow-hidden">
-                  <img
-                    src={story.cover_img_url}
-                    alt={story.title}
-                    className="w-full h-full object-cover"
-                  />
+            {/* Indicateur de buffering */}
+            {isBuffering && (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                <div className="text-center">
+                  <Loader2 className="w-12 h-12 animate-spin text-white mx-auto mb-3" />
+                  <p className="text-white text-sm">جاري التحميل...</p>
                 </div>
-                <div className="flex-1" dir="rtl">
-                  <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-slate-800'}`}>
-                    {story.title}
-                  </h3>
-                  <p className={`text-sm ${darkMode ? 'text-slate-400' : 'text-slate-500'}`}>
-                    بواسطة {story.author}
-                  </p>
-                  <span className={`inline-block px-2 py-1 rounded-full text-xs mt-2 ${
-                    darkMode ? 'bg-violet-900/50 text-violet-300' : 'bg-violet-100 text-violet-600'
-                  }`}>
-                    {story.range}
+              </div>
+            )}
+            
+            {/* Overlay de contrôles */}
+            <div className={`absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/40 transition-opacity duration-300 ${
+              showControls ? 'opacity-100' : 'opacity-0'
+            }`}>
+              {/* Contrôles supérieurs */}
+              <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
+                <div className="flex gap-2">
+                  {/* Contrôles des sous-titres */}
+                  <button
+                    onClick={() => setShowSubtitles(!showSubtitles)}
+                    className={`p-2 rounded-full text-white transition-colors ${
+                      showSubtitles ? 'bg-violet-600' : 'bg-black/50 hover:bg-black/70'
+                    }`}
+                    title="تشغيل/إيقاف الترجمة"
+                  >
+                    <BookOpen className="w-4 h-4" />
+                  </button>
+                  
+                  {showSubtitles && (
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => setFontSize(prev => Math.max(14, prev - 2))}
+                        className="p-2 bg-black/50 text-white rounded-full hover:bg-black/70 text-sm transition-colors"
+                        title="تصغير النص"
+                      >
+                        A-
+                      </button>
+                      <button
+                        onClick={() => setFontSize(prev => Math.min(24, prev + 2))}
+                        className="p-2 bg-black/50 text-white rounded-full hover:bg-black/70 text-sm transition-colors"
+                        title="تكبير النص"
+                      >
+                        A+
+                      </button>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex gap-2">
+                  {/* Menu des paramètres */}
+                  <div className="relative group">
+                    <button className="p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors">
+                      <Settings className="w-5 h-5" />
+                    </button>
+                    <div className="absolute right-0 top-12 bg-slate-800 rounded-lg p-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto min-w-48">
+                      <div className="text-white text-sm space-y-3">
+                        <div>
+                          <p className="text-xs text-slate-400 mb-2">سرعة التشغيل</p>
+                          <div className="grid grid-cols-2 gap-1">
+                            {[0.5, 0.75, 1, 1.25, 1.5, 2].map(speed => (
+                              <button
+                                key={speed}
+                                onClick={() => setPlaybackSpeed(speed)}
+                                className={`px-2 py-1 rounded text-xs transition-colors ${
+                                  playbackSpeed === speed ? 'bg-violet-600 text-white' : 'hover:bg-slate-700'
+                                }`}
+                              >
+                                {speed}x
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        <div className="pt-2 border-t border-slate-700">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={autoPlay}
+                              onChange={(e) => setAutoPlay(e.target.checked)}
+                              className="rounded"
+                            />
+                            <span className="text-xs">التشغيل التلقائي</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <button
+                    onClick={toggleFullscreen}
+                    className="p-2 bg-black/50 text-white rounded-full hover:bg-black/70 transition-colors"
+                    title="ملء الشاشة"
+                  >
+                    {isFullscreen ? (
+                      <Minimize2 className="w-5 h-5" />
+                    ) : (
+                      <Maximize2 className="w-5 h-5" />
+                    )}
+                  </button>
+                </div>
+              </div>
+              
+              {/* Bouton de lecture central */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <button
+                  onClick={togglePlayPause}
+                  className="p-6 bg-black/60 text-white rounded-full hover:bg-black/80 shadow-lg transition-all transform hover:scale-105"
+                >
+                  {isPlaying ? (
+                    <Pause className="w-12 h-12" />
+                  ) : (
+                    <Play className="w-12 h-12 pl-2" />
+                  )}
+                </button>
+              </div>
+              
+              {/* Contrôles inférieurs */}
+              <div className="absolute bottom-4 left-4 right-4 space-y-3">
+                {/* Barre de progression avec marqueurs */}
+                <div className="relative group">
+                  <div className="h-2 bg-white/30 rounded-full overflow-hidden group-hover:h-3 transition-all">
+                    {/* Barre tamponnée */}
+                    <div 
+                      className="absolute h-full bg-white/50"
+                      style={{ width: `${buffered}%` }}
+                    />
+                    {/* Barre de progression */}
+                    <div 
+                      className="absolute h-full bg-red-600 transition-all duration-200"
+                      style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
+                    />
+                    {/* Marqueurs de segments */}
+                    {currentChapter.contentSegments?.map((segment, index) => (
+                      <div
+                        key={segment.id}
+                        className="absolute top-0 w-0.5 h-full bg-violet-400/70 cursor-pointer hover:bg-violet-400 transition-colors z-10"
+                        style={{ left: `${duration ? (segment.startTime / duration) * 100 : 0}%` }}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          goToSegment(segment.id);
+                        }}
+                        title={`${segment.text.substring(0, 50)}...`}
+                      />
+                    ))}
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="100"
+                    value={duration ? (currentTime / duration) * 100 : 0}
+                    onChange={handleSeek}
+                    className="absolute top-0 left-0 w-full h-6 opacity-0 cursor-pointer"
+                  />
+                  
+                  {/* Informations temps */}
+                  <div className="flex justify-between text-xs text-white/90 mt-2">
+                    <div className="flex items-center gap-3">
+                      <span>{formatTime(currentTime)}</span>
+                      {currentSegment && (
+                        <span className="text-violet-300 bg-black/50 px-2 py-1 rounded">
+                          {currentSegment.id}/{currentChapter.contentSegments?.length}
+                        </span>
+                      )}
+                    </div>
+                    <span>{formatTime(duration)}</span>
+                  </div>
+                </div>
+                
+                {/* Contrôles de navigation et volume */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={handlePreviousChapter}
+                      disabled={currentChapterIndex === 0}
+                      className="p-2 text-white hover:bg-white/20 rounded-full disabled:opacity-30 transition-colors"
+                      title="الفصل السابق"
+                    >
+                      <SkipBack className="w-5 h-5" />
+                    </button>
+                    
+                    <button
+                      onClick={() => skipTime(-10)}
+                      className="p-2 text-white hover:bg-white/20 rounded-full transition-colors"
+                      title="10 ثوان للخلف"
+                    >
+                      <Rewind className="w-5 h-5" />
+                    </button>
+                    
+                    <button
+                      onClick={() => skipTime(10)}
+                      className="p-2 text-white hover:bg-white/20 rounded-full transition-colors"
+                      title="10 ثوان للأمام"
+                    >
+                      <FastForward className="w-5 h-5" />
+                    </button>
+                    
+                    <button
+                      onClick={handleNextChapter}
+                      disabled={currentChapterIndex === chapters.length - 1}
+                      className="p-2 text-white hover:bg-white/20 rounded-full disabled:opacity-30 transition-colors"
+                      title="الفصل التالي"
+                    >
+                      <SkipForward className="w-5 h-5" />
+                    </button>
+                  </div>
+                  
+                  {/* Contrôle du volume */}
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={toggleMute}
+                      className="p-2 text-white hover:bg-white/20 rounded transition-colors"
+                    >
+                      {isMuted || volume === 0 ? (
+                        <VolumeX className="w-5 h-5" />
+                      ) : (
+                        <Volume2 className="w-5 h-5" />
+                      )}
+                    </button>
+                    <input
+                      type="range"
+                      min="0"
+                      max="100"
+                      value={isMuted ? 0 : volume * 100}
+                      onChange={handleVolumeChange}
+                      className="w-24 h-1"
+                    />
+                    <span className="text-xs text-white/70 w-8 text-center">
+                      {Math.round(isMuted ? 0 : volume * 100)}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Bouton play quand contrôles cachés */}
+            {!showControls && !isPlaying && (
+              <button
+                onClick={togglePlayPause}
+                className="absolute inset-0 m-auto w-20 h-20 bg-black/60 rounded-full flex items-center justify-center hover:bg-black/80 transition-all transform hover:scale-105"
+              >
+                <Play className="w-10 h-10 text-white pl-2" />
+              </button>
+            )}
+            
+            {/* Indicateur de lecture */}
+            {isPlaying && (
+              <div className="absolute top-4 left-4 flex items-center gap-2 bg-red-600/90 px-3 py-2 rounded-full text-white text-sm">
+                <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                مباشر
+              </div>
+            )}
+
+            {/* Aperçu du segment suivant */}
+            {upcomingSegment && showControls && (
+              <div className="absolute bottom-32 right-4 bg-black/70 backdrop-blur-sm rounded-lg p-3 text-white text-sm max-w-xs">
+                <p className="text-slate-300 text-xs mb-1">التالي:</p>
+                <p className="line-clamp-2 text-xs">{upcomingSegment.text.substring(0, 80)}...</p>
+                <p className="text-violet-300 text-xs mt-1">
+                  في {formatTime(upcomingSegment.startTime - currentTime)}
+                </p>
+              </div>
+            )}
+          </div>
+          
+          {/* Informations sur la vidéo */}
+          <div className="p-6 bg-slate-900">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1">
+                <h1 className="text-2xl font-bold text-white mb-2">
+                  {currentChapter.title} - الفصل {currentChapterIndex + 1}
+                </h1>
+                <div className="flex items-center gap-4 text-slate-400 text-sm flex-wrap">
+                  <span className="flex items-center gap-1">
+                    <Video className="w-4 h-4" />
+                    فيديو
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-4 h-4" />
+                    {formatTime(duration)}
+                  </span>
+                  <span>•</span>
+                  <span>{story.author}</span>
+                  <span>•</span>
+                  <span className="flex items-center gap-1">
+                    <BookOpen className="w-4 h-4" />
+                    {currentChapter.contentSegments?.length} مقطع
                   </span>
                 </div>
               </div>
               
-              <p className={`text-sm leading-relaxed ${darkMode ? 'text-slate-300' : 'text-slate-600'}`} dir="rtl">
-                {story.description}
-              </p>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setIsLiked(!isLiked)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full transition-colors ${
+                    isLiked ? 'bg-red-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  }`}
+                >
+                  <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
+                  <span>{isLiked ? 'مُعجب به' : 'إعجاب'}</span>
+                </button>
+                
+                <button
+                  onClick={shareContent}
+                  className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-slate-300 hover:bg-slate-700 rounded-full transition-colors"
+                >
+                  <Share2 className="w-4 h-4" />
+                  <span>مشاركة</span>
+                </button>
+
+                {currentChapter.video_url && (
+                  <a
+                    href={currentChapter.video_url}
+                    download
+                    className="flex items-center gap-2 px-4 py-2 bg-slate-800 text-slate-300 hover:bg-slate-700 rounded-full transition-colors"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>تحميل</span>
+                  </a>
+                )}
+              </div>
+            </div>
+            
+            {/* Description et contenu synchronisé */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <div className="bg-slate-800 rounded-lg p-4">
+                  <h3 className="text-lg font-medium text-white mb-3 flex items-center gap-2">
+                    <BookOpen className="w-5 h-5" />
+                    وصف القصة
+                  </h3>
+                  <p className="text-slate-300 leading-relaxed mb-4">
+                    {story.description}
+                  </p>
+                  
+                  <div className="border-t border-slate-700 pt-4">
+                    <h4 className="text-white font-medium mb-2">محتوى هذا الفصل:</h4>
+                    <p className="text-slate-400 text-sm leading-relaxed">
+                      {currentChapter.content.substring(0, 200)}...
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 mt-4 text-sm">
+                    <div>
+                      <p className="text-slate-400">التقدم</p>
+                      <p className="text-white font-medium">
+                        {currentChapterIndex + 1} من {chapters.length} فصل
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-slate-400">المقطع الحالي</p>
+                      <p className="text-white font-medium">
+                        {currentSegment?.id || 1} من {currentChapter.contentSegments?.length || 0}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-slate-400">المدة الإجمالية</p>
+                      <p className="text-white font-medium">
+                        {formatTime(chapters.reduce((acc, ch) => acc + (ch.duration || 0), 0))}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-slate-400">نوع المحتوى</p>
+                      <p className="text-white font-medium">قصة مرئية</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Panneau de navigation rapide */}
+              <div className="bg-slate-800 rounded-lg p-4">
+                <h3 className="text-lg font-medium text-white mb-3">التنقل السريع</h3>
+                
+                {/* Navigation par segments */}
+                <div className="space-y-2">
+                  <p className="text-sm text-slate-400">مقاطع هذا الفصل:</p>
+                  <div className="max-h-48 overflow-y-auto space-y-2">
+                    {currentChapter.contentSegments?.slice(0, 8).map((segment) => (
+                      <button
+                        key={segment.id}
+                        onClick={() => goToSegment(segment.id)}
+                        className={`w-full text-left p-3 rounded text-xs transition-all ${
+                          currentSegment?.id === segment.id 
+                            ? 'bg-violet-600 text-white shadow-lg' 
+                            : 'hover:bg-slate-700 text-slate-300 border border-slate-700'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-medium">مقطع {segment.id}</span>
+                          <span className="text-xs opacity-70">
+                            {formatTime(segment.startTime)}
+                          </span>
+                        </div>
+                        <p className="line-clamp-2">
+                          {segment.text.substring(0, 60)}...
+                        </p>
+                        <div className="flex items-center justify-between mt-1">
+                          <span className={`text-xs px-2 py-0.5 rounded ${
+                            segment.type === 'title' ? 'bg-amber-900/30 text-amber-300' :
+                            segment.type === 'dialogue' ? 'bg-emerald-900/30 text-emerald-300' :
+                            'bg-blue-900/30 text-blue-300'
+                          }`}>
+                            {segment.type === 'title' ? 'عنوان' : 
+                             segment.type === 'dialogue' ? 'حوار' : 'وصف'}
+                          </span>
+                          {currentSegment?.id === segment.id && (
+                            <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  
+                  {(currentChapter.contentSegments?.length || 0) > 8 && (
+                    <button
+                      onClick={() => setShowChapterList(true)}
+                      className="w-full p-2 text-center text-sm text-violet-400 hover:text-violet-300 transition-colors border border-violet-400/30 rounded"
+                    >
+                      عرض جميع المقاطع ({currentChapter.contentSegments?.length})
+                    </button>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
-      </main>
 
-      {/* Custom Scrollbar Styles */}
-      <style jsx global>{`
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(0, 0, 0, 0.1);
-          border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(139, 92, 246, 0.6);
-          border-radius: 3px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(139, 92, 246, 0.8);
-        }
+        {/* Sidebar - Liste des chapitres et segments */}
+        {showChapterList && (
+          <div className="w-full lg:w-96 bg-slate-900 border-l border-slate-800 flex flex-col max-h-screen">
+            <div className="p-4 border-b border-slate-800">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Video className="w-5 h-5" />
+                  فصول القصة
+                </h3>
+                <button
+                  onClick={() => setShowChapterList(false)}
+                  className="p-1 text-slate-400 hover:text-white lg:hidden"
+                >
+                  <ChevronUp className="w-5 h-5" />
+                </button>
+              </div>
+              <p className="text-sm text-slate-400">
+                {chapters.length} فصل • {chapters.reduce((acc, ch) => acc + (ch.contentSegments?.length || 0), 0)} مقطع
+              </p>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto">
+              {chapters.map((chapter, chapterIndex) => (
+                <div key={chapter.id} className="border-b border-slate-800">
+                  {/* عنوان الفصل */}
+                  <div
+                    onClick={() => {
+                      setCurrentChapterIndex(chapterIndex);
+                      setCurrentTime(0);
+                    }}
+                    className={`p-4 cursor-pointer transition-colors ${
+                      chapterIndex === currentChapterIndex 
+                        ? 'bg-slate-800 border-r-4 border-red-600' 
+                        : 'hover:bg-slate-800/50'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-16 h-12 rounded overflow-hidden flex-shrink-0 relative">
+                        <img
+                          src={chapter.image_url || story.cover_img_url}
+                          alt={chapter.title}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                          <Video className="w-4 h-4 text-white" />
+                        </div>
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <h4 className={`font-medium text-sm mb-1 ${
+                          chapterIndex === currentChapterIndex ? 'text-white' : 'text-slate-300'
+                        }`}>
+                          {chapter.title}
+                        </h4>
+                        <p className="text-xs text-slate-400 mb-1">
+                          الفصل {chapterIndex + 1} • {formatTime(chapter.duration || 0)}
+                        </p>
+                        <p className="text-xs text-slate-500 line-clamp-2">
+                          {chapter.content.substring(0, 80)}...
+                        </p>
+                      </div>
+                      
+                      {chapterIndex === currentChapterIndex && isPlaying && (
+                        <div className="flex items-center gap-1 text-red-500">
+                          <div className="w-1 h-3 bg-red-500 rounded-full animate-pulse" />
+                          <div className="w-1 h-2 bg-red-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
+                          <div className="w-1 h-4 bg-red-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Segments du chapitre actuel */}
+                  {chapterIndex === currentChapterIndex && (
+                    <div className="bg-slate-850">
+                      {chapter.contentSegments?.map((segment) => (
+                        <div
+                          key={segment.id}
+                          onClick={() => goToSegment(segment.id)}
+                          className={`px-6 py-3 cursor-pointer border-l-2 transition-all ${
+                            currentSegment?.id === segment.id
+                              ? 'bg-violet-900/30 border-violet-500 text-white'
+                              : upcomingSegment?.id === segment.id
+                              ? 'bg-slate-700/20 border-slate-500 text-slate-200'
+                              : 'border-transparent text-slate-400 hover:bg-slate-700/10 hover:text-slate-300'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-medium">
+                                مقطع {segment.id}
+                              </span>
+                              <span className={`text-xs px-1.5 py-0.5 rounded ${
+                                segment.type === 'title' ? 'bg-amber-900/30 text-amber-300' :
+                                segment.type === 'dialogue' ? 'bg-emerald-900/30 text-emerald-300' :
+                                'bg-blue-900/30 text-blue-300'
+                              }`}>
+                                {segment.type === 'title' ? 'ع' : segment.type === 'dialogue' ? 'ح' : 'و'}
+                              </span>
+                            </div>
+                            
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-slate-500">
+                                {formatTime(segment.startTime)} - {formatTime(segment.endTime)}
+                              </span>
+                              {currentSegment?.id === segment.id && (
+                                <div className="w-2 h-2 bg-violet-500 rounded-full animate-pulse" />
+                              )}
+                            </div>
+                          </div>
+                          
+                          <p className="text-xs line-clamp-3 leading-relaxed">
+                            {segment.text}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Contrôles mobiles fixes */}
+      <div className="fixed bottom-0 left-0 right-0 bg-slate-900/95 backdrop-blur-md border-t border-slate-800 p-4 lg:hidden">
+        {/* Informations du segment actuel */}
+        {currentSegment && showSubtitles && (
+          <div className="mb-3 p-3 bg-slate-800 rounded-lg">
+            <div className="flex items-center justify-between text-sm mb-2">
+              <div className="flex-1">
+                <p className="text-slate-400">مقطع {currentSegment.id} من {currentChapter.contentSegments?.length}</p>
+                <p className="text-white font-medium line-clamp-2 text-sm leading-relaxed">
+                  {currentSegment.text}
+                </p>
+              </div>
+            </div>
+            
+            {/* بار تقدم المقطع */}
+            <div className="h-1 bg-slate-700 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-violet-500 transition-all duration-300"
+                style={{ width: `${segmentProgress * 100}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* أزرار التحكم الرئيسية */}
+        <div className="flex items-center justify-between mb-3">
+          <button
+            onClick={handlePreviousChapter}
+            disabled={currentChapterIndex === 0}
+            className="p-3 text-white disabled:opacity-30 hover:bg-slate-800 rounded-full transition-colors"
+          >
+            <SkipBack className="w-5 h-5" />
+          </button>
+          
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => skipTime(-10)}
+              className="p-2 text-white hover:bg-slate-800 rounded-full transition-colors"
+            >
+              <Rewind className="w-4 h-4" />
+            </button>
+            
+            <button
+              onClick={togglePlayPause}
+              className="p-4 bg-red-600 text-white rounded-full shadow-lg hover:bg-red-700 transition-all transform active:scale-95"
+            >
+              {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6 pl-1" />}
+            </button>
+            
+            <button
+              onClick={() => skipTime(10)}
+              className="p-2 text-white hover:bg-slate-800 rounded-full transition-colors"
+            >
+              <FastForward className="w-4 h-4" />
+            </button>
+          </div>
+          
+          <button
+            onClick={handleNextChapter}
+            disabled={currentChapterIndex === chapters.length - 1}
+            className="p-3 text-white disabled:opacity-30 hover:bg-slate-800 rounded-full transition-colors"
+          >
+            <SkipForward className="w-5 h-5" />
+          </button>
+        </div>
+        
+        {/* شريط التقدم مع معالم المقاطع */}
+        <div className="relative mb-3">
+          <div className="h-2 bg-slate-700 rounded-full overflow-hidden">
+            {/* شريط التحميل */}
+            <div 
+              className="absolute h-full bg-slate-600"
+              style={{ width: `${buffered}%` }}
+            />
+            {/* شريط التقدم */}
+            <div 
+              className="absolute h-full bg-red-600 transition-all duration-200"
+              style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
+            />
+            {/* معالم المقاطع */}
+            {currentChapter.contentSegments?.map((segment, index) => (
+              <div
+                key={segment.id}
+                className="absolute top-0 w-0.5 h-full bg-violet-400/70 cursor-pointer"
+                style={{ left: `${duration ? (segment.startTime / duration) * 100 : 0}%` }}
+                onClick={() => goToSegment(segment.id)}
+              />
+            ))}
+          </div>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={duration ? (currentTime / duration) * 100 : 0}
+            onChange={handleSeek}
+            className="absolute top-0 left-0 w-full h-6 opacity-0 cursor-pointer"
+          />
+        </div>
+        
+        {/* معلومات الوقت وأزرار إضافية */}
+        <div className="flex justify-between items-center">
+          <div className="flex items-center gap-3 text-sm">
+            <span className="text-slate-300">{formatTime(currentTime)}</span>
+            <span className="text-slate-500">•</span>
+            <span className="text-slate-400">{formatTime(duration)}</span>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowSubtitles(!showSubtitles)}
+              className={`p-2 rounded transition-colors ${
+                showSubtitles ? 'text-violet-400' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <BookOpen className="w-4 h-4" />
+            </button>
+            
+            <button
+              onClick={() => setShowChapterList(!showChapterList)}
+              className="p-2 text-slate-400 hover:text-white transition-colors"
+            >
+              {showChapterList ? <ChevronDown className="w-4 h-4" /> : <List className="w-4 h-4" />}
+            </button>
+            
+            <button
+              onClick={shareContent}
+              className="p-2 text-slate-400 hover:text-white transition-colors"
+            >
+              <Share2 className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+        
+        {/* مؤشر السرعة والصوت */}
+        <div className="flex justify-between items-center mt-2 pt-2 border-t border-slate-800">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={toggleMute}
+              className="p-1 text-slate-400 hover:text-white transition-colors"
+            >
+              {isMuted || volume === 0 ? (
+                <VolumeX className="w-4 h-4" />
+              ) : (
+                <Volume2 className="w-4 h-4" />
+              )}
+            </button>
+            <input
+              type="range"
+              min="0"
+              max="100"
+              value={isMuted ? 0 : volume * 100}
+              onChange={handleVolumeChange}
+              className="w-16 h-1"
+            />
+          </div>
+          
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <span>السرعة: {playbackSpeed}x</span>
+            <span>•</span>
+            <span>فيديو</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Style CSS personnalisé */}
+      <style jsx>{`
         .line-clamp-2 {
           display: -webkit-box;
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
           overflow: hidden;
         }
+        
+        .line-clamp-3 {
+          display: -webkit-box;
+          -webkit-line-clamp: 3;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+        }
+        
+        /* Barres de défilement personnalisées */
+        .overflow-y-auto {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
+        }
+        
+        .overflow-y-auto::-webkit-scrollbar {
+          width: 6px;
+        }
+        
+        .overflow-y-auto::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        
+        .overflow-y-auto::-webkit-scrollbar-thumb {
+          background: rgba(148, 163, 184, 0.3);
+          border-radius: 3px;
+        }
+        
+        .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+          background: rgba(148, 163, 184, 0.5);
+        }
+        
+        /* Styles pour les contrôles de portée */
+        input[type="range"] {
+          appearance: none;
+          background: transparent;
+          cursor: pointer;
+        }
+        
+        input[type="range"]::-webkit-slider-track {
+          background: rgba(255, 255, 255, 0.2);
+          height: 4px;
+          border-radius: 2px;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+          appearance: none;
+          height: 16px;
+          width: 16px;
+          border-radius: 50%;
+          background: #dc2626;
+          cursor: pointer;
+          border: 2px solid white;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+          transition: all 0.2s ease;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb:hover {
+          transform: scale(1.2);
+          box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+        }
+        
+        input[type="range"]::-moz-range-track {
+          background: rgba(255, 255, 255, 0.2);
+          height: 4px;
+          border-radius: 2px;
+          border: none;
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+          height: 16px;
+          width: 16px;
+          border-radius: 50%;
+          background: #dc2626;
+          cursor: pointer;
+          border: 2px solid white;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Transitions fluides */
+        .transition-all {
+          transition-property: all;
+          transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+          transition-duration: 300ms;
+        }
+        
+        /* Focus pour accessibilité */
+        button:focus-visible {
+          outline: 2px solid #8b5cf6;
+          outline-offset: 2px;
+        }
+        
+        /* Améliorations pour mobile */
+        @media (max-width: 768px) {
+          .lg\\:hidden {
+            display: none !important;
+          }
+          
+          /* Padding pour éviter le chevauchement avec les contrôles fixes */
+          body {
+            padding-bottom: 200px;
+          }
+        }
+        
+        /* Optimisations de performance */
+        .transform {
+          transform: translateZ(0);
+          will-change: transform;
+        }
+        
+        /* Réduction de mouvement pour accessibilité */
+        @media (prefers-reduced-motion: reduce) {
+          .animate-pulse,
+          .animate-spin,
+          .transition-all {
+            animation: none;
+            transition: none;
+          }
+        }
+        
+        /* Styles pour les sous-titres */
+        .subtitle-container {
+          background: rgba(0, 0, 0, 0.8);
+          backdrop-filter: blur(8px);
+          border-radius: 8px;
+          padding: 12px 24px;
+          margin: 0 auto;
+          max-width: 90%;
+          text-align: center;
+        }
+        
+        /* Animation de chargement */
+        .loading-shimmer {
+          background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+          background-size: 200% 100%;
+          animation: shimmer 2s infinite;
+        }
+        
+        @keyframes shimmer {
+          0% {
+            background-position: -200% 0;
+          }
+          100% {
+            background-position: 200% 0;
+          }
+        }
+        
+        /* Amélioration du contraste pour la lisibilité */
+        .high-contrast {
+          text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        }
+        
+        /* Styles personnalisés pour les éléments vidéo */
+        video {
+          object-fit: cover;
+          width: 100%;
+          height: 100%;
+        }
+        
+        video::-webkit-media-controls {
+          display: none !important;
+        }
+        
+        video::-webkit-media-controls-panel {
+          display: none !important;
+        }
+        
+        /* Indicateurs de segments sur la barre de progression */
+        .segment-marker {
+          position: absolute;
+          top: 0;
+          width: 2px;
+          height: 100%;
+          background: rgba(139, 92, 246, 0.7);
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        
+        .segment-marker:hover {
+          background: rgba(139, 92, 246, 1);
+          width: 3px;
+          transform: scaleY(1.2);
+        }
+        
+        /* Styles pour les tooltips */
+        .tooltip {
+          position: relative;
+        }
+        
+        .tooltip:hover::after {
+          content: attr(title);
+          position: absolute;
+          bottom: 100%;
+          left: 50%;
+          transform: translateX(-50%);
+          background: rgba(0, 0, 0, 0.9);
+          color: white;
+          padding: 4px 8px;
+          border-radius: 4px;
+          font-size: 12px;
+          white-space: nowrap;
+          z-index: 1000;
+        }
+        
+        /* Amélioration de l'interface RTL pour l'arabe */
+        .rtl {
+          direction: rtl;
+          text-align: right;
+        }
+        
+        .rtl .flex {
+          flex-direction: row-reverse;
+        }
+        
+        /* États de chargement pour les vidéos */
+        .video-loading {
+          background: linear-gradient(45deg, #1e293b, #334155);
+          background-size: 400% 400%;
+          animation: gradientShift 3s ease infinite;
+        }
+        
+        @keyframes gradientShift {
+          0% {
+            background-position: 0% 50%;
+          }
+          50% {
+            background-position: 100% 50%;
+          }
+          100% {
+            background-position: 0% 50%;
+          }
+        }
+        
+        /* Responsive design avancé */
+        @media (max-width: 640px) {
+          .subtitle-container {
+            padding: 8px 16px;
+            font-size: 14px;
+            bottom: 80px;
+          }
+          
+          .video-controls {
+            padding: 8px;
+          }
+          
+          .chapter-info {
+            font-size: 12px;
+          }
+        }
+        
+        /* Animations douces pour les changements d'état */
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        
+        .fade-in {
+          animation: fadeIn 0.3s ease-out;
+        }
+        
+        /* Styles pour les segments actifs */
+        .segment-active {
+          background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.1));
+          border-left: 4px solid rgb(139, 92, 246);
+          box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
+        }
+        
+        /* Amélioration des boutons */
+        .btn-primary {
+          background: linear-gradient(135deg, #dc2626, #ef4444);
+          border: none;
+          color: white;
+          transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+          background: linear-gradient(135deg, #b91c1c, #dc2626);
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+        }
+        
+        .btn-primary:active {
+          transform: translateY(0);
+          box-shadow: 0 2px 6px rgba(220, 38, 38, 0.3);
+        }
       `}</style>
     </div>
   );
 };
 
-export default VideoStoryPlayer;    
-
+export default StoryVideoPlayer;

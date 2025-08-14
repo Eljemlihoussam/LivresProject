@@ -1,4 +1,5 @@
 "use client";
+import { signIn, getSession } from "next-auth/react";
 import Checkbox from "../../components/form/input/Checkbox";
 import Input from "../../components/form/input/InputField";
 import Label from "../../components/form/Label";
@@ -6,17 +7,94 @@ import Button from "../../components/ui/button/Button";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "../../icons";
 import Link from "next/link";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const router = useRouter();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
+
+    console.log("🚀 Tentative de connexion avec:", { email, password: "***" });
+
+    try {
+      const result = await signIn("credentials", {
+        email: email.trim(),
+        password,
+        redirect: false,
+      });
+
+      console.log("📋 Résultat signIn:", result);
+
+      if (result?.error) {
+        console.log("❌ Erreur de connexion:", result.error);
+        
+        // Messages d'erreur plus user-friendly
+        switch (result.error) {
+          case "Email ou mot de passe incorrect":
+            setError("Email ou mot de passe incorrect. Vérifiez vos identifiants.");
+            break;
+          case "Email et mot de passe requis":
+            setError("Veuillez remplir tous les champs.");
+            break;
+          default:
+            setError("Erreur de connexion. Vérifiez vos identifiants.");
+        }
+      } else if (result?.ok) {
+        console.log("✅ Connexion réussie, vérification session...");
+        
+        // Attendre un peu avant de vérifier la session
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        const session = await getSession();
+        console.log("📊 Session:", session);
+        
+        if (session) {
+          console.log("✅ Session créée, redirection...");
+          router.push("/dashboard");
+          router.refresh(); // Force le rafraîchissement
+        } else {
+          console.log("❌ Pas de session trouvée");
+          setError("Erreur lors de la création de la session. Réessayez.");
+        }
+      }
+    } catch (err) {
+      console.error("💥 Erreur lors de la connexion:", err);
+      setError("Une erreur s'est produite. Réessayez.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    setError("");
+    
+    try {
+      console.log("🔗 Connexion Google...");
+      await signIn("google", { 
+        callbackUrl: "/dashboard",
+        redirect: true 
+      });
+    } catch (err) {
+      console.error("💥 Erreur Google:", err);
+      setError("Erreur lors de la connexion avec Google");
+      setIsLoading(false);
+    }
+  };
   
   return (
-    <div className="min-h-screen  dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+    <div className="min-h-screen dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        
-        
-
         {/* Card principale */}
         <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 p-8">
           {/* Header du formulaire */}
@@ -34,8 +112,19 @@ export default function SignInForm() {
             </p>
           </div>
 
-          {/* Bouton Google avec design amélioré */}
-          <button className="w-full inline-flex items-center justify-center gap-3 py-3.5 text-sm font-medium text-gray-700 transition-all duration-200 bg-white border-2 border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 hover:shadow-md dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:hover:bg-gray-700 dark:hover:border-gray-500 group">
+          {/* Affichage des erreurs */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            </div>
+          )}
+
+          {/* Bouton Google */}
+          <button 
+            className="w-full inline-flex items-center justify-center gap-3 py-3.5 text-sm font-medium text-gray-700 transition-all duration-200 bg-white border-2 border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 hover:shadow-md dark:bg-gray-800 dark:border-gray-600 dark:text-white dark:hover:bg-gray-700 dark:hover:border-gray-500 group disabled:opacity-50 disabled:cursor-not-allowed" 
+            onClick={handleGoogleSignIn}
+            disabled={isLoading}
+          >
             <svg
               width="20"
               height="20"
@@ -61,10 +150,10 @@ export default function SignInForm() {
                 fill="#EB4335"
               />
             </svg>
-            Se connecter avec Google
+            {isLoading ? "Connexion..." : "Se connecter avec Google"}
           </button>
 
-          {/* Séparateur stylisé */}
+          {/* Séparateur */}
           <div className="relative py-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-200 dark:border-gray-700"></div>
@@ -77,7 +166,7 @@ export default function SignInForm() {
           </div>
 
           {/* Formulaire */}
-          <form className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
               <Label className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 block">
                 Email <span className="text-red-500">*</span>
@@ -85,6 +174,10 @@ export default function SignInForm() {
               <Input 
                 placeholder="votre.email@exemple.com" 
                 type="email" 
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={isLoading}
                 className="w-full px-4 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 transition-all duration-200"
               />
             </div>
@@ -97,11 +190,16 @@ export default function SignInForm() {
                 <Input
                   type={showPassword ? "text" : "password"}
                   placeholder="Entrez votre mot de passe"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={isLoading}
                   className="w-full px-4 py-3 pr-12 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-200 dark:focus:ring-blue-800 transition-all duration-200"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
+                  disabled={isLoading}
                   className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200"
                 >
                   {showPassword ? (
@@ -118,6 +216,7 @@ export default function SignInForm() {
                 <Checkbox 
                   checked={isChecked} 
                   onChange={setIsChecked}
+                  disabled={isLoading}
                   className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
                 />
                 <span className="text-sm text-gray-700 dark:text-gray-300">
@@ -132,8 +231,12 @@ export default function SignInForm() {
               </Link>
             </div>
 
-            <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3.5 px-6 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 border-0">
-              Se connecter
+            <Button 
+              type="submit"
+              disabled={isLoading || !email.trim() || !password}
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium py-3.5 px-6 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 border-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            >
+              {isLoading ? "Connexion en cours..." : "Se connecter"}
             </Button>
           </form>
 
