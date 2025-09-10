@@ -201,11 +201,11 @@ const Navbar = () => {
 
         {/* Section centrale */}
         <div className="flex items-center space-x-8">
-          <Link href="/videos" className="text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors">
+          <Link href="/Videos" className="text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors">
             Videos
           </Link>
-          <Link href="/histoires" className="text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors">
-            Histoires
+          <Link href="/Audios" className="text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors">
+            Audios
           </Link>
           
           {/* Logo */}
@@ -220,7 +220,7 @@ const Navbar = () => {
             </div>
           </Link>
           
-          <Link href="/livres" className="text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors">
+          <Link href="/catalogue" className="text-gray-700 dark:text-gray-200 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition-colors">
             Livres
           </Link>
           

@@ -10,8 +10,6 @@ const VideoStoryPlayer = () => {
   const [error, setError] = useState(null);
   const [videoError, setVideoError] = useState(false);
   const [storyId, setStoryId] = useState(null);
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [downloadComplete, setDownloadComplete] = useState(false);
   
   // Récupérer l'ID depuis l'URL
   const searchParams = useSearchParams();
@@ -116,30 +114,17 @@ const VideoStoryPlayer = () => {
 
   // Télécharger la vidéo
   const downloadVideo = () => {
-    if (!storyData?.story || isDownloading) return;
+    if (!storyData?.story) return;
     
-    setIsDownloading(true);
+    const videoPath = getVideoPath();
+    const filename = `${storyData.story.title}.mp4`;
     
-    // Simulation du téléchargement (remplacez par votre logique réelle)
-    setTimeout(() => {
-      const videoPath = getVideoPath();
-      const filename = `${storyData.story.title}.mp4`;
-      
-      const a = document.createElement('a');
-      a.href = videoPath;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      
-      setIsDownloading(false);
-      setDownloadComplete(true);
-      
-      // Réinitialiser après 3 secondes
-      setTimeout(() => {
-        setDownloadComplete(false);
-      }, 3000);
-    }, 2000);
+    const a = document.createElement('a');
+    a.href = videoPath;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   // État de chargement
@@ -310,91 +295,29 @@ const VideoStoryPlayer = () => {
             )}
           </div>
           
-          {/* Action Buttons - VERSION AMÉLIORÉE */}
+          {/* Action Buttons */}
           <div className="flex flex-wrap gap-4 justify-center mb-8">
-            {/* Bouton de téléchargement amélioré */}
-            <div className="relative">
-              <button
-                onClick={downloadVideo}
-                disabled={isDownloading}
-                className={`group flex items-center gap-3 px-8 py-4 text-white rounded-2xl font-bold transition-all duration-500 shadow-lg overflow-hidden ${
-                  downloadComplete 
-                    ? 'bg-gradient-to-r from-green-500 to-emerald-500' 
-                    : isDownloading
-                    ? 'bg-gradient-to-r from-blue-600 to-purple-600'
-                    : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700'
-                } ${isDownloading ? 'scale-100' : 'hover:scale-105'}`}
-              >
-                {/* Barre de progression pendant le téléchargement */}
-                {isDownloading && (
-                  <div className="absolute bottom-0 left-0 h-1 bg-green-300 transition-all duration-2000 ease-linear animate-progress"></div>
-                )}
-                
-                {/* Icône changeante selon l'état */}
-                <div className="relative z-10 flex items-center">
-                  {downloadComplete ? (
-                    <span className="text-2xl transition-all duration-300 animate-checkmark">✅</span>
-                  ) : isDownloading ? (
-                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  ) : (
-                    <span className="text-2xl transition-transform duration-300 group-hover:scale-110 group-hover:animate-bounce">⬇️</span>
-                  )}
-                </div>
-                
-                {/* Texte changeant selon l'état */}
-                <span className="relative z-10 transition-all duration-300">
-                  {downloadComplete ? 'تم التحميل!' : isDownloading ? 'جاري التحميل...' : 'تحميل الفيديو'}
-                </span>
-                
-                {/* Effet de lumière au survol */}
-                <div className="absolute inset-0 flex justify-center overflow-hidden">
-                  <div className="absolute w-12 h-40 bg-white/30 -top-10 -left-4 transform rotate-12 transition-all duration-700 group-hover:translate-x-48 group-hover:translate-y-20 group-hover:opacity-0"></div>
-                </div>
-              </button>
-              
-              {/* Effet de particules après téléchargement */}
-              {downloadComplete && (
-                <div className="absolute inset-0 flex justify-center items-start pointer-events-none z-20">
-                  {[...Array(15)].map((_, i) => (
-                    <div
-                      key={i}
-                      className="absolute w-2 h-2 bg-yellow-300 rounded-full opacity-0 animate-confetti"
-                      style={{
-                        animationDelay: `${i * 0.1}s`,
-                        left: `${Math.random() * 100}%`,
-                        transform: `translate(${Math.random() * 20 - 10}px, ${Math.random() * 20 - 10}px)`,
-                      }}
-                    ></div>
-                  ))}
-                </div>
-              )}
-            </div>
+            <button
+              onClick={downloadVideo}
+              className="group flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white rounded-2xl font-bold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+            >
+              <span className="text-2xl group-hover:scale-110 transition-transform">⬇️</span>
+              تحميل الفيديو
+            </button>
             
-            {/* Bouton d'actualisation amélioré */}
             <button
               onClick={() => window.location.reload()}
-              className="group flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-2xl font-bold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl relative overflow-hidden"
+              className="group flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-2xl font-bold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
             >
-              {/* Effet de lumière */}
-              <div className="absolute inset-0 flex justify-center overflow-hidden">
-                <div className="absolute w-12 h-40 bg-white/30 -top-10 -left-4 transform rotate-12 transition-all duration-700 group-hover:translate-x-48 group-hover:translate-y-20 group-hover:opacity-0"></div>
-              </div>
-              
-              <span className="text-2xl group-hover:rotate-180 transition-transform duration-700">🔄</span>
+              <span className="text-2xl group-hover:scale-110 transition-transform">🔄</span>
               إعادة تحميل
             </button>
 
-            {/* Bouton de retour amélioré */}
             <button
               onClick={() => window.history.back()}
-              className="group flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white rounded-2xl font-bold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl relative overflow-hidden"
+              className="group flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white rounded-2xl font-bold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
             >
-              {/* Effet de lumière */}
-              <div className="absolute inset-0 flex justify-center overflow-hidden">
-                <div className="absolute w-12 h-40 bg-white/30 -top-10 -left-4 transform rotate-12 transition-all duration-700 group-hover:translate-x-48 group-hover:translate-y-20 group-hover:opacity-0"></div>
-              </div>
-              
-              <span className="text-2xl group-hover:-translate-x-1 transition-transform duration-300">↩️</span>
+              <span className="text-2xl group-hover:scale-110 transition-transform">↩️</span>
               العودة
             </button>
           </div>
@@ -426,43 +349,8 @@ const VideoStoryPlayer = () => {
           </div>
         </div>
 
-        <style jsx global>{`
-          @keyframes progress {
-            0% { width: 0%; }
-            100% { width: 100%; }
-          }
-          @keyframes checkmark {
-            0% { transform: scale(0); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-          }
-          @keyframes confetti {
-            0% { 
-              opacity: 1;
-              transform: translateY(0) rotate(0deg);
-            }
-            100% { 
-              opacity: 0;
-              transform: translateY(50px) rotate(360deg);
-            }
-          }
-          @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-          }
-          .animate-progress {
-            animation: progress 2s linear forwards;
-          }
-          .animate-checkmark {
-            animation: checkmark 0.5s ease-out;
-          }
-          .animate-confetti {
-            animation: confetti 1s ease-out forwards;
-          }
-          .animate-bounce {
-            animation: bounce 0.5s ease-in-out infinite;
-          }
-        `}</style>
+       
+
         
       </div>
     </div>
