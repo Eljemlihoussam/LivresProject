@@ -42,12 +42,23 @@ const AudiobookCollection: React.FC = () => {
   const [apiData, setApiData] = useState<ApiData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [availableVideos, setAvailableVideos] = useState<Set<number>>(new Set());
 
   // Utiliser le ThemeContext au lieu de l'état local
   const { theme } = useTheme();
   const darkMode = theme === 'dark';
 
-  // Récupérer les données depuis l'API
+  // Fonction pour vérifier si une vidéo existe
+  const checkVideoExists = async (storyId: number): Promise<boolean> => {
+    try {
+      const response = await fetch(`/videos/story-${storyId}.mp4`, { method: 'HEAD' });
+      return response.ok;
+    } catch {
+      return false;
+    }
+  };
+
+  // Récupérer les données depuis l'API et vérifier les vidéos disponibles
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -62,6 +73,19 @@ const AudiobookCollection: React.FC = () => {
         
         const data: ApiData = await response.json();
         setApiData(data);
+        
+        // Vérifier quelles vidéos sont disponibles
+        const videoChecks = await Promise.all(
+          data.categoriesInfo.map(async (story) => {
+            const hasVideo = await checkVideoExists(story.story_id);
+            return hasVideo ? story.story_id : null;
+          })
+        );
+        
+        const availableVideoIds = new Set(
+          videoChecks.filter((id): id is number => id !== null)
+        );
+        setAvailableVideos(availableVideoIds);
         
       } catch (err) {
         console.error('Erreur lors du chargement des données:', err);
@@ -345,9 +369,19 @@ const AudiobookCollection: React.FC = () => {
                         استمع الآن
                         <ArrowRight className="w-4 h-4" />
                       </button>
+                      
+                      {/* Bouton vidéo - toujours affiché mais désactivé si pas de vidéo */}
                       <button 
-                        onClick={() => handleWatchVideo(story)}
-                        className="mt-2 w-full bg-gradient-to-r from-red-700 to-pink-900 text-white py-2.5 rounded-lg font-medium hover:from-red-600 hover:to-pink-900 transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                        onClick={() => availableVideos.has(story.story_id) ? handleWatchVideo(story) : null}
+                        disabled={!availableVideos.has(story.story_id)}
+                        className={`mt-2 w-full py-2.5 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none ${
+                          availableVideos.has(story.story_id)
+                            ? 'bg-gradient-to-r from-red-700 to-pink-900 text-white hover:from-red-600 hover:to-pink-900 focus:ring-2 focus:ring-red-500 focus:ring-offset-2 cursor-pointer'
+                            : darkMode 
+                              ? 'bg-gray-600 text-gray-400 cursor-no-drop opacity-50'
+                              : 'bg-gray-300 text-gray-500 cursor-no-drop opacity-50'
+                        }`}
+                        title={availableVideos.has(story.story_id) ? 'شاهد الآن' : 'الفيديو غير متوفر'}
                       >
                         <Video className="w-4 h-4" />
                         شاهد الآن 

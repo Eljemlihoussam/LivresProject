@@ -15,10 +15,18 @@ export async function GET() {
 
     // 3. Jointure pour les infos détaillées des histoires/favorites
     const categoriesInfo = await prisma.$queryRaw`
-      SELECT story_id ,title, author, description, audio_duration, publication_date, cover_img_url, range 
-      FROM public."Favorite"
-      INNER JOIN public."Story" ON public."Favorite".story_id = public."Story".id 
-      INNER JOIN public."AgeRange" ON public."Story".Age_range_id = public."AgeRange".id
+      SELECT s.id AS story_id,
+       s.title,
+       s.author,
+       s.description,
+       s.audio_duration,
+       s.publication_date,
+       s.cover_img_url,
+       a.range
+FROM  public."Story" s
+INNER JOIN public."AgeRange" a
+    ON s.Age_range_id = a.id;
+
     `;
 
     // 4. Compter les favoris par story
